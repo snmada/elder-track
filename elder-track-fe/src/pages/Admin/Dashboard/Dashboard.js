@@ -1,7 +1,7 @@
-import {React} from 'react'
+import {React, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
-import {Grid, Typography, Button, Fab, Accordion, Tooltip, Box, AccordionSummary, AccordionDetails, Paper} from '@mui/material'
-import {DataGrid, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton} from '@mui/x-data-grid'
+import {Grid, Typography, Button, Fab, Accordion, Tooltip, Box, AccordionSummary, AccordionDetails, Paper, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions} from '@mui/material'
+import {DataGrid} from '@mui/x-data-grid'
 import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
@@ -12,24 +12,33 @@ import Navbar from '../../../components/Navbar/Navbar.js'
 function Dashboard() {
 
     const navigate = useNavigate();
+    const [open, setOpen] = useState(false);
+    
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     const columns = [
         {field: 'id', headerName: 'ID', width: 60, hideable: false},
-        {field: 'lastname', headerName: 'Nume', width: 200, hideable: false},
-        {field: 'firstname', headerName: 'Prenume', width: 200, hideable: false},
+        {field: 'lastname', headerName: 'Nume', width: 250, hideable: false},
+        {field: 'firstname', headerName: 'Prenume', width: 250, hideable: false},
         {field: 'cnp', headerName: 'CNP', width: 180},
         {field: 'email', headerName: 'E-mail', width: 180},
-        {field: 'edit', headerName: 'Editare', width: 110, sortable: false, filterable: false, hideable: false,
-        renderCell: (cellValues) => {
-            return (
-                <Button size="small"><EditIcon color="primary"/></Button>
-            )
-        }
-        },
-        {field: 'delete', headerName: 'Ștergere', width: 110, sortable: false, filterable: false, hideable: false,
+        // {field: 'edit', headerName: 'Editare', width: 110, sortable: false, filterable: false, hideable: false,
+        //     renderCell: (cellValues) => {
+        //         return (
+        //             <Button size="small"><EditIcon color="primary"/></Button>
+        //         )
+        //     }
+        // },
+        {field: 'delete', headerName: 'Ștergere', width: 90, sortable: false, filterable: false, hideable: false,
             renderCell: (cellValues) => {
                 return (
-                    <Button size="small"><DeleteIcon sx={{color: '#E45B5F'}}/></Button>
+                    <Button size="small"><DeleteIcon sx={{color: '#E45B5F'}} onClick={handleOpen}/></Button>
                 )
             }
         }
@@ -46,15 +55,6 @@ function Dashboard() {
         { id: 8, lastname: 'Frances', firstname: 'Rossini', cnp: 5030419123456, email: 'snow@gmail.com'},
         { id: 9, lastname: 'Roxie', firstname: 'Harvey', cnp: 5030419123456, email: 'snow@gmail.com'},
     ];
-
-    function CustomToolbar(){
-        return (
-            <GridToolbarContainer>
-                <GridToolbarColumnsButton/>
-                <GridToolbarFilterButton/>
-            </GridToolbarContainer>
-        )
-    }
 
     return (
         <>
@@ -84,7 +84,6 @@ function Dashboard() {
                                             pageSize={10}
                                             rowsPerPageOptions={[10]}
                                             rows={rows}
-                                            components={{Toolbar: CustomToolbar}}
                                         />
                                     </div>
                                 </AccordionDetails>
@@ -102,7 +101,6 @@ function Dashboard() {
                                             pageSize={10}
                                             rowsPerPageOptions={[10]}
                                             rows={rows}
-                                            components={{Toolbar: CustomToolbar}}
                                         />
                                     </div>
                                 </AccordionDetails>
@@ -120,7 +118,6 @@ function Dashboard() {
                                             pageSize={10}
                                             rowsPerPageOptions={[10]}
                                             rows={rows}
-                                            components={{Toolbar: CustomToolbar}}
                                         />
                                     </div>
                                 </AccordionDetails>
@@ -129,6 +126,18 @@ function Dashboard() {
                 </Grid>
             </Paper>
         </Grid>
+        <Dialog open={open} onClose={handleClose}>
+            <DialogTitle>{"Confirmare Ștergere"}</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Sunteți sigur că doriți să ștergeți utilizatorul selectat?
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button sx={{background: '#E45B5F', color: '#FBFBFB', "&:hover": {background: '#FFB84C'}}}>Șterge</Button>
+                <Button onClick={handleClose}>Anulare</Button>
+            </DialogActions>
+        </Dialog>
     </>
     )
 }
