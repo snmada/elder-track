@@ -7,6 +7,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
 import '../Dashboard/Dashboard.css'
+import Navbar from '../../../components/Navbar/Navbar.js'
 
 function Dashboard() {
 
@@ -18,14 +19,14 @@ function Dashboard() {
         {field: 'firstname', headerName: 'Prenume', width: 200, hideable: false},
         {field: 'cnp', headerName: 'CNP', width: 180},
         {field: 'email', headerName: 'E-mail', width: 180},
-        {field: 'edit', headerName: 'Edit', width: 110, sortable: false, filterable: false, hideable: false,
+        {field: 'edit', headerName: 'Editare', width: 110, sortable: false, filterable: false, hideable: false,
         renderCell: (cellValues) => {
             return (
                 <Button size="small"><EditIcon color="primary"/></Button>
             )
         }
         },
-        {field: 'delete', headerName: 'Delete', width: 110, sortable: false, filterable: false, hideable: false,
+        {field: 'delete', headerName: 'Ștergere', width: 110, sortable: false, filterable: false, hideable: false,
             renderCell: (cellValues) => {
                 return (
                     <Button size="small"><DeleteIcon sx={{color: '#E45B5F'}}/></Button>
@@ -56,15 +57,17 @@ function Dashboard() {
     }
 
     return (
+        <>
+        <Navbar/>
         <Grid container className="dashboard-container">
-            <Paper elevation={10} className="paper">
+            <Paper elevation={0} className="paper">
                 <Grid container>
-                    <Grid item xs={6} pb={6}>
-                        <Typography className="title">Administrator</Typography>
+                    <Grid item xs={8} pb={6}>
+                        <Typography className="title">Listele utilizatorilor înregistrați în aplicație: Medici, Pacienți și Supraveghetori</Typography>
                     </Grid>
-                    <Grid item xs={6} pb={6}>
+                    <Grid item xs={4} pb={6}>
                         <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
-                            <Tooltip title="Înregistrare utilizator nou">
+                            <Tooltip title="Înregistrare utilizator">
                                 <Fab color="primary" sx={{width: '40px', height: '40px'}} onClick={() => {navigate('/create-user')}}><AddIcon/></Fab>
                             </Tooltip>
                         </Box>
@@ -126,6 +129,7 @@ function Dashboard() {
                 </Grid>
             </Paper>
         </Grid>
+    </>
     )
 }
 
