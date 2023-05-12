@@ -5,6 +5,7 @@ import * as yup from 'yup'
 import {useForm} from 'react-hook-form'
 import {yupResolver} from '@hookform/resolvers/yup'
 import './CreateUserAccount.css'
+import Navbar from '../../../components/Navbar/Navbar.js'
 
 function CreateUserAccount() {
     
@@ -37,6 +38,8 @@ function CreateUserAccount() {
     };
 
     return (
+        <>
+        <Navbar/>
         <form onSubmit={handleSubmit(onSubmit)}>
             <Grid container className="create-user-container">
                 <Paper elevation={10} className="paper">
@@ -147,6 +150,7 @@ function CreateUserAccount() {
                 </Paper>
             </Grid>
         </form>
+        </>
     )
 }
 

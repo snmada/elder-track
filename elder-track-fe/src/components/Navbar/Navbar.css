@@ -1,0 +1,16 @@
+.login-button{
+    text-align: center;
+    font-size: 18px;
+    border: 1px solid #131A4C;
+    padding: 6px 35px;
+    cursor: pointer;
+}
+
+.login-button:hover{
+   background: #131A4C;
+   color: white;
+}
+
+.icon-navbar{
+    font-size: 1.5rem;
+}
