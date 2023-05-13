@@ -59,7 +59,7 @@ function Dashboard() {
     return (
         <>
         <Navbar/>
-        <Grid container className="dashboard-container">
+        <Grid container className="admin-dashboard-container">
             <Paper elevation={0} className="paper">
                 <Grid container>
                     <Grid item xs={8} pb={6}>
