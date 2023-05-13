@@ -17,6 +17,11 @@ code {
   padding: 1px;
 }
 
+.description{
+  background: #F5F5F5;
+  padding: 3px;
+}
+
 input[type=password]::-ms-reveal,
 input[type=password]::-ms-clear{
     display: none;
