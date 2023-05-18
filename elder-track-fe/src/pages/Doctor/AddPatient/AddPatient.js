@@ -1,5 +1,5 @@
 import {React, useState} from 'react'
-import {Grid, Typography, Button, Autocomplete, TextField, Box, Paper} from '@mui/material'
+import {Grid, Typography, Button, Autocomplete, TextField, Box, Paper, Divider} from '@mui/material'
 import * as yup from 'yup'
 import {useForm} from 'react-hook-form'
 import {yupResolver} from '@hookform/resolvers/yup'
@@ -9,8 +9,46 @@ import './AddPatient.css'
 
 function AddPatient() {
 
-    const [data, setData] = useState({firstname: "", lastname: "", cnp: "", age: "", occupation: "", street: "", number: "", buildingNumber: "", 
+    const [data, setData] = useState({firstname: "", lastname: "", cnp: "", age: "", profession : "", occupation: "", street: "", number: "", buildingNumber: "", 
     staircase: "", floor: "", apartment: "", city: "", county: "", phoneNumber: "", email: "", allergies: "", recommendation: ""});
+
+    const [medicalHistory, setMedicalHistory] = useState([{diagnosis: "", treatment: ""}]);
+    
+    const handleAddHistory = () => {
+        setMedicalHistory([...medicalHistory, {diagnosis: "", treatment: ""}]);
+    };
+    
+    const handleMedicalHistoryChange = (index, event) => {
+        const {name, value} = event.target;
+        const updatedMedicalHistory = [...medicalHistory];
+        updatedMedicalHistory[index] = {...updatedMedicalHistory[index], [name]: value};
+        setMedicalHistory(updatedMedicalHistory);
+    };
+
+    const handleDeleteMedicalHistory = (index) => {
+        const updatedMedicalHistory = [...medicalHistory];
+        updatedMedicalHistory.splice(index, 1);
+        setMedicalHistory(updatedMedicalHistory);
+    };
+
+    const [recommendation, setRecommendation] = useState([{type: "", duration: "", note: ""}]);
+
+    const handleAddRecommendation = () => {
+        setRecommendation([...recommendation, {type: "", duration: "", note: ""}]);
+    };
+    
+    const handleRecommendationChange = (index, event) => {
+        const {name, value} = event.target;
+        const updatedRecommendation = [...recommendation];
+        updatedRecommendation[index] = {...updatedRecommendation[index], [name]: value};
+        setRecommendation(updatedRecommendation);
+    };
+
+    const handleDeleteRecommendation = (index) => {
+        const updatedRecommendation = [...recommendation];
+        updatedRecommendation.splice(index, 1);
+        setRecommendation(updatedRecommendation);
+    };
 
     const schema = yup.object().shape({
         lastname: yup.string().matches(/[a-zA-ZăâîșțĂÂÎȘȚ -]+$/, "Nume invalid!"),
@@ -59,8 +97,11 @@ function AddPatient() {
         return age;
     }
 
-    const onSubmit = async () => {
-       console.log(data);
+    const onSubmit = async (event) => {
+        event.preventDefault();
+        const filteredHistory = medicalHistory.filter(entry => entry.diagnosis !== "" && entry.treatment !== "");
+        console.log(filteredHistory);
+        console.log(data);
     }
 
   return (
@@ -135,7 +176,20 @@ function AddPatient() {
                                         value={data.age}
                                     />
                                 </Grid>
-                                <Grid item xs={12} sm={6} p={1}>
+                                <Grid item xs={12} sm={3} p={1}>
+                                    <TextField 
+                                        required 
+                                        name="profession" 
+                                        type="text"  
+                                        label="Profesie" 
+                                        placeholder="Introduceți profesia..." 
+                                        variant="standard" 
+                                        size="small" 
+                                        fullWidth 
+                                        onChange={handleChange}
+                                    />
+                                </Grid> 
+                                <Grid item xs={12} sm={3} p={1}>
                                     <TextField 
                                         required 
                                         name="occupation" 
@@ -266,11 +320,8 @@ function AddPatient() {
                                     />
                                     <Typography className="error">{errors.email?.message}</Typography>
                                 </Grid>
-                                <Grid item xs={12} mt={2} px={1} pb={3}>
-                                    <Typography variant="h6" className="description">Informații medicale</Typography>
-                                </Grid>
-                                <Grid item pt={3} p={1}>
-                                    <Typography sx={{fontSize: '18px'}}>Alergii</Typography>
+                                <Grid item xs={12} mt={2} px={1}>
+                                    <Typography variant="h6" className="description">Alergii</Typography>
                                 </Grid>
                                 <Grid item xs={12} p={1}>
                                     <TextField
@@ -283,22 +334,94 @@ function AddPatient() {
                                         fullWidth
                                     />
                                 </Grid>
-                                <Grid item pt={3} p={1}>
-                                    <Typography sx={{fontSize: '18px'}}>Recomandări medicale</Typography>
+                                <Grid item xs={12} mt={2} px={1}>
+                                    <Typography variant="h6" className="description">Recomandări</Typography>
+                                </Grid>
+                                {recommendation.map((value, index) => (
+                                    <div key={index} style={{width: '100%'}}>
+                                        <Grid item xs={12} sm={12} p={1}>
+                                            <TextField 
+                                                name="type" 
+                                                type="text"  
+                                                label="Tipul recomandării" 
+                                                placeholder="Ex: bicicletă, alergat, plimbare" 
+                                                fullWidth 
+                                                value={value.type}
+                                                onChange={(event) => handleRecommendationChange(index, event)}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={12} p={1}>
+                                            <TextField
+                                                name="duration"
+                                                type="text"  
+                                                label="Durata zilnică" 
+                                                fullWidth
+                                                value={value.duration}
+                                                onChange={(event) => handleRecommendationChange(index, event)}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={12} p={1}>
+                                            <TextField
+                                                name="note"
+                                                label="Alte indicații" 
+                                                multiline
+                                                maxRows={10}
+                                                fullWidth
+                                                value={value.note}
+                                                onChange={(event) => handleRecommendationChange(index, event)}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} pb={0}>
+                                            <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                                                <Button onClick={() => handleDeleteRecommendation(index)} sx={{color: 'red'}}>ȘTERGE</Button>
+                                            </Box>
+                                        </Grid>
+                                    </div>
+                                ))}
+                                <Grid item xs={12} pb={6}>
+                                    <Button onClick={handleAddRecommendation}>+ ADAUGĂ</Button>
+                                </Grid>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
+                                    <Typography variant="h6" className="description">Istoric</Typography>
+                                </Grid>
+                                {medicalHistory.map((value, index) => (
+                                    <div key={index} style={{width: '100%'}}>
+                                        <Grid item xs={12} sm={12} p={1}>
+                                            <TextField 
+                                                name="diagnosis" 
+                                                type="text"  
+                                                label="Diagnostic" 
+                                                placeholder="Introduceți diagnosticul..." 
+                                                fullWidth 
+                                                value={value.diagnosis}
+                                                onChange={(event) => handleMedicalHistoryChange(index, event)}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={12} p={1}>
+                                            <TextField
+                                                name="treatment"
+                                                label="Tratament" 
+                                                placeholder="Introduceți tratamentul..."
+                                                multiline
+                                                maxRows={10}
+                                                fullWidth
+                                                value={value.treatment}
+                                                onChange={(event) => handleMedicalHistoryChange(index, event)}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} pb={0}>
+                                            <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                                                <Button onClick={() => handleDeleteMedicalHistory(index)} sx={{color: 'red'}}>ȘTERGE</Button>
+                                            </Box>
+                                        </Grid>
+                                    </div>
+                                ))}
+                                <Grid item xs={12} pb={6}>
+                                    <Button onClick={handleAddHistory}>+ ADAUGĂ</Button>
                                 </Grid>
                                 <Grid item xs={12} p={1}>
-                                        <TextField
-                                            name="recommendation"
-                                            onChange={handleChange}
-                                            required
-                                            placeholder="Introduceți aici..."
-                                            multiline
-                                            maxRows={10}
-                                            fullWidth
-                                        />
-                                </Grid>
-                                <Grid item xs={12} p={1}>
-                                    <Box display='flex' justifyContent='flex-end'>
+                                    <Divider/>
+                                    <Box display='flex' justifyContent='flex-end' pt={4}>
                                         <Button variant="contained" type="submit"><SaveIcon sx={{mr: 1}}/>SAVE</Button>
                                     </Box>
                                 </Grid>
