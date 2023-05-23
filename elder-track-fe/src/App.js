@@ -5,6 +5,7 @@ import AdminDashboard from './pages/Admin/Dashboard/Dashboard.js'
 import CreateUserAccount from './pages/Admin/CreateUserAccount/CreateUserAccount.js'
 import DoctorDashboard from './pages/Doctor/Dashboard/Dashboard.js'
 import AddPatient from './pages/Doctor/AddPatient/AddPatient.js'
+import PatientProfile from './pages/Doctor/PatientProfile/PatientProfile.js'
 
 function App() {
     return (
@@ -16,6 +17,7 @@ function App() {
                 <Route exact path="/create-user" element={<CreateUserAccount/>}/>
                 <Route exact path="/doctor-dashboard" element={<DoctorDashboard/>}/>
                 <Route exact path="/add-patient" element={<AddPatient/>}/>
+                <Route exact path="/patient" element={<PatientProfile/>}/>
             </Routes>
         </BrowserRouter>
     )
