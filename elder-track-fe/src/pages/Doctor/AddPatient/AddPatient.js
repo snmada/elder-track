@@ -10,7 +10,7 @@ import './AddPatient.css'
 function AddPatient() {
 
     const [data, setData] = useState({firstname: "", lastname: "", cnp: "", age: "", profession : "", occupation: "", street: "", number: "", buildingNumber: "", 
-    staircase: "", floor: "", apartment: "", city: "", county: "", phoneNumber: "", email: "", allergies: "", recommendation: ""});
+    staircase: "", floor: "", apartment: "", city: "", county: "", phoneNumber: "", email: "", allergies: "", medicationSchedule: ""});
 
     const [medicalHistory, setMedicalHistory] = useState([{diagnosis: "", treatment: ""}]);
     
@@ -419,10 +419,24 @@ function AddPatient() {
                                 <Grid item xs={12} pb={6}>
                                     <Button onClick={handleAddHistory}>+ ADAUGĂ</Button>
                                 </Grid>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
+                                    <Typography variant="h6" className="description">Schemă de medicație</Typography>
+                                </Grid>
                                 <Grid item xs={12} p={1}>
+                                    <TextField
+                                        name="medicationSchedule"
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="Introduceți aici..."
+                                        multiline
+                                        maxRows={10}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={12} p={1} pt={8}>
                                     <Divider/>
                                     <Box display='flex' justifyContent='flex-end' pt={4}>
-                                        <Button variant="contained" type="submit"><SaveIcon sx={{mr: 1}}/>SAVE</Button>
+                                        <Button variant="contained" type="submit"><SaveIcon sx={{mr: 1}}/>SALVEAZĂ</Button>
                                     </Box>
                                 </Grid>
                             </Grid>
