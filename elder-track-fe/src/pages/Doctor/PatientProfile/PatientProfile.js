@@ -25,7 +25,8 @@ function PatientProfile() {
         email: "-", 
         allergies: "-", 
         recommendation: "-",
-        medicalHistory: "-"
+        medicalHistory: "-",
+        medicationSchedule: "-"
     };
 
     const [data, setData] = useState(patient);
@@ -172,6 +173,12 @@ function PatientProfile() {
                             </Grid>
                             <Grid item xs={12} p={1}>
                                 <Typography>{data.medicalHistory}</Typography>
+                            </Grid>
+                            <Grid item xs={12} mt={2} px={1} pb={1}>
+                                <Typography variant="h6" className="description">Schemă de medicație</Typography>
+                            </Grid>
+                            <Grid item xs={12} p={1}>
+                                <Typography>{data.medicationSchedule}</Typography>
                             </Grid>
                         </Grid>
                     </Paper>
