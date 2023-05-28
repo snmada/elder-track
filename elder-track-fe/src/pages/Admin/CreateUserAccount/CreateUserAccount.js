@@ -9,7 +9,7 @@ import Navbar from '../../../components/Navbar/Navbar.js'
 
 function CreateUserAccount() {
     
-    const [data, setData] = useState({lastname: "", firstname: "", cnp: "", email: "", userType: "", password: ""});
+    const [data, setData] = useState({lastname: "", firstname: "", cnp: "", email: "", userType: "", doctor: "", supervisor: "", caregiver: "", password: ""});
     const [showPassword, setShowPassword] = useState(false);
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
@@ -36,6 +36,21 @@ function CreateUserAccount() {
     const onSubmit = () => {
        console.log(data);
     };
+
+    const doctors = [
+        {cnp: '1234567896432', lastname: 'Popescu', firstname: 'Ion'},
+        {cnp: '1234567896435', lastname: 'Pop', firstname: 'Andrei'},
+    ];
+
+    const supervisors = [
+        {cnp: '1234567896432', lastname: 'Stan', firstname: 'Ion'},
+        {cnp: '1234567896435', lastname: 'Pop', firstname: 'George'},
+    ];
+
+    const caregivers = [
+        {cnp: '1234567896432', lastname: 'Stanescu', firstname: 'Alex'},
+        {cnp: '1234567896435', lastname: 'Albu', firstname: 'Timeea'},
+    ];
 
     return (
         <>
@@ -108,6 +123,74 @@ function CreateUserAccount() {
                                 </Select>
                             </FormControl>
                         </Grid>
+                        {
+                            data.userType === "pacient" && (
+                                <>
+                                    <Grid item xs={4}> 
+                                        <FormControl fullWidth>
+                                            <InputLabel id="select-user">Medic</InputLabel>
+                                            <Select
+                                                required
+                                                labelId="select-user"
+                                                label="Medic"
+                                                name="doctor"
+                                                value={data.doctor}
+                                                onChange={handleChange}
+                                            >
+                                                <MenuItem value=""><em>None</em></MenuItem>
+                                                {doctors.map((doctor, index) => {
+                                                    return(
+                                                        <MenuItem value={doctor.cnp} key={index}>Dr. {doctor.lastname} {doctor.firstname}</MenuItem>
+                                                    )
+                                                })}
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={4}> 
+                                        <FormControl fullWidth>
+                                            <InputLabel id="select-user">Supraveghetor</InputLabel>
+                                            <Select
+                                                required
+                                                labelId="select-user"
+                                                label="Supraveghetor"
+                                                name="supervisor"
+                                                value={data.supervisor}
+                                                onChange={handleChange}
+                                            >
+                                                <MenuItem value=""><em>None</em></MenuItem>
+                                                {supervisors.map((supervisor, index) => {
+                                                    return(
+                                                        <MenuItem value={supervisor.cnp} key={index}>{supervisor.lastname} {supervisor.firstname}</MenuItem>
+                                                    )
+                                                })}
+                                            
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={4}> 
+                                        <FormControl fullWidth>
+                                            <InputLabel id="select-user">Îngrijitor</InputLabel>
+                                            <Select
+                                                required
+                                                labelId="select-user"
+                                                label="Îngrijitor"
+                                                name="caregiver"
+                                                value={data.caregiver}
+                                                onChange={handleChange}
+                                            >
+                                                <MenuItem value=""><em>None</em></MenuItem>
+                                                {caregivers.map((caregiver, index) => {
+                                                    return(
+                                                        <MenuItem value={caregiver.cnp} key={index}>{caregiver.lastname} {caregiver.firstname}</MenuItem>
+                                                    )
+                                                })}
+                                            
+                                            </Select>
+                                        </FormControl>
+                                    </Grid>
+                                </>
+                            )
+                        }
                         <Grid item xs={12} md={6}>
                             <TextField 
                                 required
