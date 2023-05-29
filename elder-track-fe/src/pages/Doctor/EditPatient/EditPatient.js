@@ -27,6 +27,25 @@ function EditPatient() {
         setParameter({...parameter, [e.target.name]: parsedValue});
     };
 
+    const [treatment, setTreatment] = useState([{description: ""}]);
+
+    const handleAddTreatment = () => {
+        setTreatment([...treatment, {description: ""}]);
+    };
+    
+    const handleTreatmentChange = (index, event) => {
+        const {name, value} = event.target;
+        const updatedTreatment = [...treatment];
+        updatedTreatment[index] = {...updatedTreatment[index], [name]: value};
+        setTreatment(updatedTreatment);
+    };
+
+    const handleDeleteTreatment = (index) => {
+        const updatedTreatment= [...treatment];
+        updatedTreatment.splice(index, 1);
+        setTreatment(updatedTreatment);
+    };
+
     const [medicalHistory, setMedicalHistory] = useState([{diagnosis: "", treatment: "", medicationSchedule: ""}]);
     
     const handleAddHistory = () => {
@@ -137,8 +156,10 @@ function EditPatient() {
     }
 
     const onSubmit = async () => {
+        const filteredTreatment = treatment.filter(entry => entry.description !== "");
         const filteredRecommendation = recommendation.filter(entry => entry.type !== "" && entry.duration !== "" && entry.note !== "");
         const filteredHistory = medicalHistory.filter(entry => entry.diagnosis !== "" && entry.treatment !== "" && entry.medicationSchedule !== "");
+        console.log(filteredTreatment);
         console.log(filteredRecommendation);
         console.log(filteredHistory);
         console.log(data);
@@ -158,7 +179,7 @@ function EditPatient() {
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <Paper elevation={5} sx={{padding:'45px 50px'}}>
                             <Grid container>
-                                <Grid item xs={12} px={1}>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Informații personale</Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={6} p={1}>
@@ -248,7 +269,7 @@ function EditPatient() {
                                         onChange={handleChange}
                                     />
                                 </Grid> 
-                                <Grid item xs={12} mt={2} px={1}>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Adresa</Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={9} p={1}>
@@ -345,7 +366,7 @@ function EditPatient() {
                                         renderInput={(params) => <TextField {...params} {...register("county")}  required variant="standard" label="Județ" size="small"/>}
                                     />
                                 </Grid>
-                                <Grid item xs={12} mt={2} px={1}>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Contact</Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={6} p={1}>
@@ -378,7 +399,7 @@ function EditPatient() {
                                     />
                                     <Typography className="error">{errors.email?.message}</Typography>
                                 </Grid>
-                                <Grid item xs={12} mt={2} px={1}>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Alergii</Typography>
                                 </Grid>
                                 <Grid item xs={12} p={1}>
@@ -616,7 +637,32 @@ function EditPatient() {
                                     />
                                     <Typography className="error">{errors.ambientTemperatureMin?.message}</Typography>
                                 </Grid>
-                                <Grid item xs={12} mt={2} px={1}>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
+                                    <Typography variant="h6" className="description">Tratamente</Typography>
+                                </Grid>
+                                {treatment.map((value, index) => (
+                                    <div key={index} style={{width: '100%'}}>
+                                        <Grid item xs={12} sm={12} p={1}>
+                                            <TextField 
+                                                name="description" 
+                                                type="text"  
+                                                label="Descriere" 
+                                                fullWidth 
+                                                value={value.description}
+                                                onChange={(event) => handleTreatmentChange(index, event)}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} pb={0}>
+                                            <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                                                <Button onClick={() => handleDeleteTreatment(index)} sx={{color: 'red'}}>ȘTERGE</Button>
+                                            </Box>
+                                        </Grid>
+                                    </div>
+                                ))}
+                                 <Grid item xs={12} pb={6}>
+                                    <Button onClick={handleAddTreatment}>+ ADAUGĂ</Button>
+                                </Grid>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Recomandări</Typography>
                                 </Grid>
                                 {recommendation.map((value, index) => (
