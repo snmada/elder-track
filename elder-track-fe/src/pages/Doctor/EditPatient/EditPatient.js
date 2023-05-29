@@ -12,6 +12,21 @@ function EditPatient() {
     const [data, setData] = useState({firstname: "", lastname: "", cnp: "", age: "", profession : "", occupation: "", street: "", number: "", buildingNumber: "", 
     staircase: "", floor: "", apartment: "", city: "", county: "", phoneNumber: "", email: "", allergies: ""});
 
+    const [parameter, setParameter] = useState({
+        bloodPressureMin: 20, bloodPressureMax: 300,
+        pulseMin: 40, pulseMax: 200,
+        bodyTemperatureMin: 30.0, bodyTemperatureMax: 42.0,
+        weightMin: 30.00, weightMax: 200.00,
+        glucoseMin: 10, glucoseMax: 400,
+        ambientTemperatureMin: 5, ambientTemperatureMax: 90
+
+    });
+
+    const updateParameter = (e) => {
+        const parsedValue = e.target.value !== ''? parseFloat(e.target.value) : '';
+        setParameter({...parameter, [e.target.name]: parsedValue});
+    };
+
     const [medicalHistory, setMedicalHistory] = useState([{diagnosis: "", treatment: "", medicationSchedule: ""}]);
     
     const handleAddHistory = () => {
@@ -55,7 +70,31 @@ function EditPatient() {
         firstname: yup.string().matches(/[a-zA-ZăâîșțĂÂÎȘȚ -]+$/, "Prenume invalid!"),
         cnp: yup.string().min(13, "CNP invalid!").max(13, "CNP invalid!"),
         email: yup.string().email("Adresa de e-mail este invalidă!"),
-        phoneNumber: yup.string().matches(/^[0-9]+$/, "Număr invalid!").min(10, "Număr invalid!").max(10, "Număr invalid!")
+        phoneNumber: yup.string().matches(/^[0-9]+$/, "Număr invalid!").min(10, "Număr invalid!").max(10, "Număr invalid!"),
+        bloodPressureMin: yup.number()
+                            .test("bloodPressureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                                return parameter.bloodPressureMin <= parameter.bloodPressureMax
+                            }),
+        pulseMin: yup.number()
+                    .test("pulseMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                        return parameter.pulseMin <= parameter.pulseMax
+                    }),  
+        bodyTemperatureMin: yup.number()
+                                .test("bodyTemperatureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                                    return parameter.bodyTemperatureMin <= parameter.bodyTemperatureMax
+                                }),  
+        weightMin: yup.number()
+                    .test("weightMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                        return parameter.weightMin <= parameter.weightMax
+                    }),  
+        glucoseMin: yup.number()
+                    .test("glucoseMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                        return parameter.glucoseMin <= parameter.glucoseMax
+                    }),    
+        ambientTemperatureMin: yup.number()
+                                .test("ambientTemperatureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                                return parameter.ambientTemperatureMin <= parameter.ambientTemperatureMax
+                            }),                
     });
 
     const {register, handleSubmit, formState: {errors}} = useForm({
@@ -103,6 +142,7 @@ function EditPatient() {
         console.log(filteredRecommendation);
         console.log(filteredHistory);
         console.log(data);
+        console.log(parameter);
     }
 
   return (
@@ -131,6 +171,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.lastname}
                                         {...register("lastname")} 
                                         onChange={handleChange}
                                     />
@@ -146,6 +187,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.firstname}
                                         {...register("firstname")} 
                                         onChange={handleChange}
                                     />
@@ -161,6 +203,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.cnp}
                                         {...register("cnp")} 
                                         onChange={handleChange}
                                     />
@@ -187,6 +230,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.profession}
                                         onChange={handleChange}
                                     />
                                 </Grid> 
@@ -200,6 +244,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.occupation}
                                         onChange={handleChange}
                                     />
                                 </Grid> 
@@ -216,6 +261,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.street}
                                         onChange={handleChange}
                                     />
                                 </Grid>
@@ -227,6 +273,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.number}
                                         onChange={handleChange}
                                     />
                                 </Grid>
@@ -238,6 +285,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.buildingNumber}
                                         onChange={handleChange}
                                     />
                                 </Grid>
@@ -249,6 +297,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.staircase}
                                         onChange={handleChange}
                                     />
                                 </Grid>
@@ -260,6 +309,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.floor}
                                         onChange={handleChange}
                                     />
                                 </Grid>
@@ -271,13 +321,16 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.apartment}
                                         onChange={handleChange}
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={6} p={1}>
                                     <Autocomplete
                                         disablePortal
-                                        options={['Alba Iulia', 'Arad', 'Pitești', 'Bacău', 'Oradea', 'Brașov','Cluj-Napoca', 'București', 'Timișoara']}
+                                        options={['', 'Alba Iulia', 'Arad', 'Pitești', 'Bacău', 'Oradea', 'Brașov','Cluj-Napoca', 'București', 'Timișoara']}
+                                        name="city"
+                                        value={data.city || ''}
                                         onChange={(event, newValue) => {setData({...data, city: newValue})}}
                                         renderInput={(params) => <TextField {...params} {...register("city")} required variant="standard" label="Oraș" size="small"/>}
                                     />
@@ -285,7 +338,9 @@ function EditPatient() {
                                 <Grid item xs={12} sm={6} p={1}>
                                     <Autocomplete
                                         disablePortal
-                                        options={['Alba', 'Arad', 'Argeș', 'Bacău', 'Bihor', 'Brașov','Cluj', 'Ilfov', 'Timiș']}
+                                        options={['', 'Alba', 'Arad', 'Argeș', 'Bacău', 'Bihor', 'Brașov','Cluj', 'Ilfov', 'Timiș']}
+                                        name="county"
+                                        value={data.county || ''}
                                         onChange={(event, newValue) => {setData({...data, county: newValue})}}
                                         renderInput={(params) => <TextField {...params} {...register("county")}  required variant="standard" label="Județ" size="small"/>}
                                     />
@@ -303,6 +358,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.phoneNumber}
                                         {...register("phoneNumber")} 
                                         onChange={handleChange}
                                     />
@@ -316,6 +372,7 @@ function EditPatient() {
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
+                                        value={data.email}
                                         {...register("email")} 
                                         onChange={handleChange}
                                     />
@@ -327,6 +384,7 @@ function EditPatient() {
                                 <Grid item xs={12} p={1}>
                                     <TextField
                                         name="allergies"
+                                        value={data.allergies}
                                         onChange={handleChange}
                                         required
                                         placeholder="Introduceți aici..."
@@ -334,6 +392,229 @@ function EditPatient() {
                                         maxRows={10}
                                         fullWidth
                                     />
+                                </Grid>
+                                <Grid item xs={12} mt={2} px={1} pb={2}>
+                                    <Typography variant="h6" className="description">Referințe</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                    <Typography sx={{fontSize: '18px'}}>Tensiune arterială (mm Hg)</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={8} p={1}>
+                                    <TextField
+                                        label="min"
+                                        type="number"
+                                        name="bloodPressureMin"
+                                        value={parameter.bloodPressureMin}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 20,
+                                                max: 300
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <TextField
+                                        label="max"
+                                        type="number"
+                                        name="bloodPressureMax"
+                                        value={parameter.bloodPressureMax}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 20,
+                                                max: 300
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <Typography className="error">{errors.bloodPressureMin?.message}</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                    <Typography sx={{fontSize: '18px'}}>Puls</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={8} p={1}>
+                                    <TextField
+                                        label="min"
+                                        type="number"
+                                        name="pulseMin"
+                                        value={parameter.pulseMin}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 40,
+                                                max: 200
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <TextField
+                                        label="max"
+                                        type="number"
+                                        name="pulseMax"
+                                        value={parameter.pulseMax}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 40,
+                                                max: 200
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <Typography className="error">{errors.pulseMin?.message}</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                    <Typography sx={{fontSize: '18px'}}>Temperatura corporală (gr. C)</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={8} p={1}>
+                                    <TextField
+                                        label="min"
+                                        type="number"
+                                        name="bodyTemperatureMin"
+                                        value={parameter.bodyTemperatureMin}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 30.00,
+                                                max: 42.00,
+                                                step: 0.1
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <TextField
+                                        label="max"
+                                        type="number"
+                                        name="bodyTemperatureMax"
+                                        value={parameter.bodyTemperatureMax}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 30.00,
+                                                max: 42.00,
+                                                step: 0.1
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <Typography className="error">{errors.bodyTemperatureMin?.message}</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                    <Typography sx={{fontSize: '18px'}}>Greutate (Kg)</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={8} p={1}>
+                                    <TextField
+                                        label="min"
+                                        type="number"
+                                        name="weightMin"
+                                        value={parameter.weightMin}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 30.00,
+                                                max: 200.00,
+                                                step: 0.1
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <TextField
+                                        label="max"
+                                        type="number"
+                                        name="weightMax"
+                                        value={parameter.weightMax}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 30.00,
+                                                max: 200.00,
+                                                step: 0.1
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <Typography className="error">{errors.weightMin?.message}</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                    <Typography sx={{fontSize: '18px'}}>Glicemie (Kg)</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={8} p={1}>
+                                    <TextField
+                                        label="min"
+                                        type="number"
+                                        name="glucoseMin"
+                                        value={parameter.glucoseMin}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 10,
+                                                max: 400
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <TextField
+                                        label="max"
+                                        type="number"
+                                        name="glucoseMax"
+                                        value={parameter.glucoseMax}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 10,
+                                                max: 400
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <Typography className="error">{errors.glucoseMin?.message}</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                    <Typography sx={{fontSize: '18px'}}>Temperatura ambientală (gr. C)</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={8} p={1}>
+                                    <TextField
+                                        label="min"
+                                        type="number"
+                                        name="ambientTemperatureMin"
+                                        value={parameter.ambientTemperatureMin}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 5,
+                                                max: 90
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <TextField
+                                        label="max"
+                                        type="number"
+                                        name="ambientTemperatureMax"
+                                        value={parameter.ambientTemperatureMax}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 5,
+                                                max: 90
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <Typography className="error">{errors.ambientTemperatureMin?.message}</Typography>
                                 </Grid>
                                 <Grid item xs={12} mt={2} px={1}>
                                     <Typography variant="h6" className="description">Recomandări</Typography>
