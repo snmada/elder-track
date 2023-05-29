@@ -1,6 +1,6 @@
 import {React, useState} from 'react'
 import {useNavigate} from 'react-router-dom'
-import {Grid, Typography, Button, Box, Paper} from '@mui/material'
+import {Grid, Typography, Button, Box, Paper, TextField} from '@mui/material'
 import {DataGrid} from '@mui/x-data-grid'
 import Navbar from '../../../components/Navbar/Navbar.js'
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -28,9 +28,19 @@ function PatientProfile() {
         phoneNumber: "-", 
         email: "-", 
         allergies: "-", 
+        treatment: "-",
         recommendation: "-",
         medicalHistory: "-",
-        medicationSchedule: "-"
+    };
+
+    const parameter = {
+        bloodPressureMin: 20, bloodPressureMax: 300,
+        pulseMin: 40, pulseMax: 200,
+        bodyTemperatureMin: 30.0, bodyTemperatureMax: 42.0,
+        weightMin: 30.00, weightMax: 200.00,
+        glucoseMin: 10, glucoseMax: 400,
+        ambientTemperatureMin: 5, ambientTemperatureMax: 90
+
     };
 
     const [data, setData] = useState(patient);
@@ -166,6 +176,189 @@ function PatientProfile() {
                             <Grid item xs={12} p={1}>
                                 <Typography>{data.allergies}</Typography>
                             </Grid>
+                            <Grid item xs={12} mt={2} px={1} pb={2}>
+                                    <Typography variant="h6" className="description">Referințe</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography sx={{fontSize: '18px'}}>Tensiune arterială (mm Hg)</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={8} p={1}>
+                                <TextField
+                                    label="min"
+                                    type="number"
+                                    name="bloodPressureMin"
+                                    defaultValue={parameter.bloodPressureMin}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                                <TextField
+                                    label="max"
+                                    type="number"
+                                    name="bloodPressureMax"
+                                    defaultValue={parameter.bloodPressureMax}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography sx={{fontSize: '18px'}}>Puls</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={8} p={1}>
+                                <TextField
+                                    label="min"
+                                    type="number"
+                                    name="pulseMin"
+                                    defaultValue={parameter.pulseMin}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                                <TextField
+                                    label="max"
+                                    type="number"
+                                    name="pulseMax"
+                                    defaultValue={parameter.pulseMax}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography sx={{fontSize: '18px'}}>Temperatura corporală (gr. C)</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={8} p={1}>
+                                <TextField
+                                    label="min"
+                                    type="number"
+                                    name="bodyTemperatureMin"
+                                    defaultValue={parameter.bodyTemperatureMin}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                                <TextField
+                                    label="max"
+                                    type="number"
+                                    name="bodyTemperatureMax"
+                                    defaultValue={parameter.bodyTemperatureMax}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography sx={{fontSize: '18px'}}>Greutate (Kg)</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={8} p={1}>
+                                <TextField
+                                    label="min"
+                                    type="number"
+                                    name="weightMin"
+                                    defaultValue={parameter.weightMin}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                                <TextField
+                                    label="max"
+                                    type="number"
+                                    name="weightMax"
+                                    defaultValue={parameter.weightMax}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography sx={{fontSize: '18px'}}>Glicemie (Kg)</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={8} p={1}>
+                                <TextField
+                                    label="min"
+                                    type="number"
+                                    name="glucoseMin"
+                                    defaultValue={parameter.glucoseMin}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                                <TextField
+                                    label="max"
+                                    type="number"
+                                    name="glucoseMax"
+                                    defaultValue={parameter.glucoseMax}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                <Typography sx={{fontSize: '18px'}}>Temperatura ambientală (gr. C)</Typography>
+                            </Grid>
+                            <Grid item xs={12} sm={8} p={1}>
+                                <TextField
+                                    label="min"
+                                    type="number"
+                                    name="ambientTemperatureMin"
+                                    defaultValue={parameter.ambientTemperatureMin}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                                <TextField
+                                    label="max"
+                                    type="number"
+                                    name="ambientTemperatureMax"
+                                    defaultValue={parameter.ambientTemperatureMax}
+                                    sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                    InputProps={{
+                                        inputProps: {
+                                            readOnly: true
+                                        }
+                                    }}
+                                />
+                            </Grid>
+                            <Grid item xs={12} mt={2} px={1} pb={1}>
+                                <Typography variant="h6" className="description">Tratamente</Typography>
+                            </Grid>
+                            <Grid item xs={12} p={1}>
+                                <Typography>{data.treatment}</Typography>
+                            </Grid>
                             <Grid item xs={12} mt={2} px={1} pb={1}>
                                 <Typography variant="h6" className="description">Recomandări</Typography>
                             </Grid>
@@ -177,12 +370,6 @@ function PatientProfile() {
                             </Grid>
                             <Grid item xs={12} p={1}>
                                 <Typography>{data.medicalHistory}</Typography>
-                            </Grid>
-                            <Grid item xs={12} mt={2} px={1} pb={1}>
-                                <Typography variant="h6" className="description">Schemă de medicație</Typography>
-                            </Grid>
-                            <Grid item xs={12} p={1}>
-                                <Typography>{data.medicationSchedule}</Typography>
                             </Grid>
                         </Grid>
                     </Paper>
