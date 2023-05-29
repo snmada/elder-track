@@ -1,16 +1,16 @@
-.add-consultation-container{
+.add-medical-examination-container{
     min-height: 90vh;
     justify-content: center;
     background: #EBEDF5;
 }
 
-.add-consultation-container .paper{
+.add-medical-examination-container .paper{
     width: 1100px;
     padding: 60px;
     background-color: rgb(255, 255, 255);
 }
 
-.add-consultation-container .title{
+.add-medical-examination-container .title{
     font-size: 25px;
     color: #131A4C;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
