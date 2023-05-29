@@ -1,0 +1,20 @@
+.patient-profile-container{
+    min-height: 90vh;
+    justify-content: center;
+    background: #EBEDF5;
+}
+
+.patient-profile-container .paper{
+    width: 1100px;
+    padding: 60px;
+    background-color: rgb(255, 255, 255);
+}
+
+.patient-profile-container .title{
+    font-size: 25px;
+    color: #131A4C;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-weight: 900;
+    border-left: 2px solid #131A4C;
+    padding-left: 10px;
+}

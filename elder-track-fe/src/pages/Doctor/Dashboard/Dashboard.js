@@ -19,7 +19,7 @@ function Dashboard() {
         {field: 'view', headerName: 'Vizualizare dosar', width: 150, sortable: false, filterable: false, hideable: false,
             renderCell: (cellValues) => {
                 return (
-                    <Button size="small"><FolderSharedIcon sx={{color: '#EC994B'}}/></Button>
+                    <Button size="small"><FolderSharedIcon/></Button>
                 )
             }
         }
@@ -43,15 +43,8 @@ function Dashboard() {
     <Grid container className="doctor-dashboard-container">
         <Paper elevation={0} className="paper">
             <Grid container>
-                <Grid item xs={8} pb={6}>
+                <Grid item xs={12} pb={6}>
                     <Typography className="title">Pacienți</Typography>
-                </Grid>
-                <Grid item xs={4} pb={6}>
-                    <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
-                        <Tooltip title="Adăugare pacient">
-                            <Fab color="primary" sx={{width: '40px', height: '40px'}} onClick={() => {navigate('/add-patient')}}><AddIcon/></Fab>
-                        </Tooltip>
-                    </Box>
                 </Grid>
                 <Grid item xs={12} py={1}>
                     <div style={{height: 500, width: '100%'}}>

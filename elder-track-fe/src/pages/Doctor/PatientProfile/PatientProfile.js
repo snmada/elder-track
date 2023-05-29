@@ -1,10 +1,14 @@
 import {React, useState} from 'react'
+import {useNavigate} from 'react-router-dom'
 import {Grid, Typography, Button, Box, Paper} from '@mui/material'
 import {DataGrid} from '@mui/x-data-grid'
 import Navbar from '../../../components/Navbar/Navbar.js'
 import DescriptionIcon from '@mui/icons-material/Description';
+import './PatientProfile.css'
 
 function PatientProfile() {
+
+    const navigate = useNavigate();
 
     const patient = {
         firstname: "-", 
@@ -58,7 +62,7 @@ function PatientProfile() {
   return (
     <>
     <Navbar/>
-    <Grid container className="add-patient-container">
+    <Grid container className="patient-profile-container">
         <Paper elevation={0} className="paper">
             <Grid container>
                 <Grid item xs={6} pb={6}>
@@ -67,7 +71,7 @@ function PatientProfile() {
                 <Grid item xs={6} pb={2}>
                     <Box display='flex' justifyContent='flex-end'>
                         <Button variant="contained" sx={{mr: 2, background: '#3F3B6C'}}>ADĂUGARE CONSULTAȚIE</Button>
-                        <Button variant="contained" sx={{mr: 2, background: '#FFE69A', color: 'black', "&:hover":{color: 'white'}}}>EDITARE</Button>
+                        <Button variant="contained" onClick={() => {navigate("/edit-patient")}} sx={{mr: 2, background: '#FFE69A', color: 'black', "&:hover":{color: 'white'}}}>EDITARE</Button>
                         <Button variant="contained" sx={{background: '#E45B5F'}}>ȘTERGERE</Button>
                     </Box>
                 </Grid>
