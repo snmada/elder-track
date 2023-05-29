@@ -7,6 +7,7 @@ import DoctorDashboard from './pages/Doctor/Dashboard/Dashboard.js'
 import EditPatient from './pages/Doctor/EditPatient/EditPatient.js'
 import PatientProfile from './pages/Doctor/PatientProfile/PatientProfile.js'
 import AddMedicalExamination from './pages/Doctor/AddMedicalExamination/AddMedicalExamination.js'
+import ViewMedicalExamination from './pages/Doctor/ViewMedicalExamination/ViewMedicalExamination.js'
 
 function App() {
     return (
@@ -20,6 +21,7 @@ function App() {
                 <Route exact path="/edit-patient" element={<EditPatient/>}/>
                 <Route exact path="/patient" element={<PatientProfile/>}/>
                 <Route exact path="/add-medical-examination" element={<AddMedicalExamination/>}/>
+                <Route exact path="/view-medical-examination" element={<ViewMedicalExamination/>}/>
             </Routes>
         </BrowserRouter>
     )
