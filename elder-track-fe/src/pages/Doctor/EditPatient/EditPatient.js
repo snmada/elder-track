@@ -5,17 +5,17 @@ import {useForm} from 'react-hook-form'
 import {yupResolver} from '@hookform/resolvers/yup'
 import SaveIcon from '@mui/icons-material/Save'
 import Navbar from '../../../components/Navbar/Navbar.js'
-import './AddPatient.css'
+import './EditPatient.css'
 
-function AddPatient() {
+function EditPatient() {
 
     const [data, setData] = useState({firstname: "", lastname: "", cnp: "", age: "", profession : "", occupation: "", street: "", number: "", buildingNumber: "", 
-    staircase: "", floor: "", apartment: "", city: "", county: "", phoneNumber: "", email: "", allergies: "", medicationSchedule: ""});
+    staircase: "", floor: "", apartment: "", city: "", county: "", phoneNumber: "", email: "", allergies: ""});
 
-    const [medicalHistory, setMedicalHistory] = useState([{diagnosis: "", treatment: ""}]);
+    const [medicalHistory, setMedicalHistory] = useState([{diagnosis: "", treatment: "", medicationSchedule: ""}]);
     
     const handleAddHistory = () => {
-        setMedicalHistory([...medicalHistory, {diagnosis: "", treatment: ""}]);
+        setMedicalHistory([...medicalHistory, {diagnosis: "", treatment: "", medicationSchedule: ""}]);
     };
     
     const handleMedicalHistoryChange = (index, event) => {
@@ -97,9 +97,10 @@ function AddPatient() {
         return age;
     }
 
-    const onSubmit = async (event) => {
-        event.preventDefault();
-        const filteredHistory = medicalHistory.filter(entry => entry.diagnosis !== "" && entry.treatment !== "");
+    const onSubmit = async () => {
+        const filteredRecommendation = recommendation.filter(entry => entry.type !== "" && entry.duration !== "" && entry.note !== "");
+        const filteredHistory = medicalHistory.filter(entry => entry.diagnosis !== "" && entry.treatment !== "" && entry.medicationSchedule !== "");
+        console.log(filteredRecommendation);
         console.log(filteredHistory);
         console.log(data);
     }
@@ -107,11 +108,11 @@ function AddPatient() {
   return (
     <>
     <Navbar/>
-    <Grid container className="add-patient-container">
+    <Grid container className="edit-patient-container">
         <Paper elevation={0} className="paper">
             <Grid container>
                 <Grid item xs={12} pb={6}>
-                    <Typography className="title">Adăugare pacient</Typography>
+                    <Typography className="title">Fișa pacientului</Typography>
                 </Grid>
                 <Grid item xs={12} py={1}>
                     <form onSubmit={handleSubmit(onSubmit)}>
@@ -409,6 +410,18 @@ function AddPatient() {
                                                 onChange={(event) => handleMedicalHistoryChange(index, event)}
                                             />
                                         </Grid>
+                                        <Grid item xs={12} p={1}>
+                                            <TextField
+                                                name="medicationSchedule"
+                                                label="Schema de medicație" 
+                                                placeholder="Introduceți schema de medicație..."
+                                                multiline
+                                                maxRows={10}
+                                                fullWidth
+                                                value={value.medicationSchedule}
+                                                onChange={(event) => handleMedicalHistoryChange(index, event)}
+                                            />
+                                        </Grid>
                                         <Grid item xs={12} pb={0}>
                                             <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
                                                 <Button onClick={() => handleDeleteMedicalHistory(index)} sx={{color: 'red'}}>ȘTERGE</Button>
@@ -418,20 +431,6 @@ function AddPatient() {
                                 ))}
                                 <Grid item xs={12} pb={6}>
                                     <Button onClick={handleAddHistory}>+ ADAUGĂ</Button>
-                                </Grid>
-                                <Grid item xs={12} mt={2} px={1} pb={2}>
-                                    <Typography variant="h6" className="description">Schemă de medicație</Typography>
-                                </Grid>
-                                <Grid item xs={12} p={1}>
-                                    <TextField
-                                        name="medicationSchedule"
-                                        onChange={handleChange}
-                                        required
-                                        placeholder="Introduceți aici..."
-                                        multiline
-                                        maxRows={10}
-                                        fullWidth
-                                    />
                                 </Grid>
                                 <Grid item xs={12} p={1} pt={8}>
                                     <Divider/>
@@ -450,4 +449,4 @@ function AddPatient() {
   )
 }
 
-export default AddPatient;
+export default EditPatient;
