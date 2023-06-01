@@ -20,7 +20,7 @@ function App() {
                 <Route exact path="/create-user" element={<CreateUserAccount/>}/>
                 <Route exact path="/doctor-dashboard" element={<DoctorDashboard/>}/>
                 <Route exact path="/edit-patient" element={<EditPatient/>}/>
-                <Route exact path="/patient" element={<PatientProfile/>}/>
+                <Route exact path="/patient/:id" element={<PatientProfile/>}/>
                 <Route exact path="/add-medical-examination" element={<AddMedicalExamination/>}/>
                 <Route exact path="/view-medical-examination" element={<ViewMedicalExamination/>}/>
                 <Route exact path="/edit-medical-examination" element={<EditMedicalExamination/>}/>

@@ -6,6 +6,9 @@ import * as yup from 'yup'
 import {useForm} from 'react-hook-form'
 import {yupResolver} from '@hookform/resolvers/yup'
 import '../LogIn/LogIn.css'
+import {database} from '../../utils/firebase.js'
+import {getAuth, signInWithEmailAndPassword} from 'firebase/auth'
+import {ref, onValue} from 'firebase/database'
 
 function LogIn() {
     
@@ -31,8 +34,29 @@ function LogIn() {
         resolver: yupResolver(schema),
     });
 
+    const auth = getAuth();
+
     const onSubmit = () => {
-       console.log(data);
+        signInWithEmailAndPassword(auth, data.email, data.password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+
+                onValue(ref(database, `ElderTrack/Acces/${user.uid}`), (snapshot) => {
+                    const data = snapshot.val();
+
+                    sessionStorage.setItem("role", data.rol);
+                    sessionStorage.setItem("uid", user.uid);
+
+                    if(data.rol === "medic")
+                    {
+                        navigate("/doctor-dashboard");
+                    }
+                });
+            })
+            .catch((error) => {
+                console.log("Error code:" + error.code);
+                console.log("Error message:" + error.message);
+            });
     };
 
     return (
