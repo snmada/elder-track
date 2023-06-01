@@ -1,4 +1,4 @@
-import {React, useState} from 'react'
+import {React} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {AppBar, Toolbar, Box, Typography} from '@mui/material'
 import {useLocation} from 'react-router-dom'
@@ -7,10 +7,9 @@ import LogoutIcon from '@mui/icons-material/Logout'
 import './Navbar.css'
 
 function Navbar() {
-
     const navigate = useNavigate();
     const location = useLocation();
-    const user = localStorage.getItem("role").charAt(0).toUpperCase() + localStorage.getItem("role").slice(1);
+    const user = sessionStorage.getItem("role")?.charAt(0).toUpperCase() + sessionStorage.getItem("role")?.slice(1);
 
     return (
         <>

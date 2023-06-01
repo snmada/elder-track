@@ -1,4 +1,4 @@
-import {React, useState} from 'react'
+import {React, useState, useEffect} from 'react'
 import {Grid, Typography, TextField, IconButton, InputAdornment, Button, Paper, Select, MenuItem, InputLabel, FormControl} from '@mui/material'
 import {Visibility, VisibilityOff} from '@mui/icons-material'
 import * as yup from 'yup'
@@ -6,6 +6,9 @@ import {useForm} from 'react-hook-form'
 import {yupResolver} from '@hookform/resolvers/yup'
 import './CreateUserAccount.css'
 import Navbar from '../../../components/Navbar/Navbar.js'
+import {database} from '../../../utils/firebase.js'
+import {getAuth, createUserWithEmailAndPassword} from 'firebase/auth'
+import {ref, set, onValue} from 'firebase/database'
 
 function CreateUserAccount() {
     
@@ -33,24 +36,126 @@ function CreateUserAccount() {
         resolver: yupResolver(schema),
     });
 
+    const [doctors, setDoctors] = useState([]);
+
+    const [supervisors, setSupervisors] = useState([]);
+
+    const [caregivers, setCaregivers] = useState([]);
+
+    useEffect(() => {
+        onValue(ref(database, "ElderTrack/Medic"), (snapshot) => {
+            const data = snapshot.val();
+            const users = Object.entries(data).map(([medicUID, user]) => ({
+                uid: medicUID,
+                firstname: user.prenume,
+                lastname: user.nume
+            }));
+            setDoctors(users); 
+        });
+
+        onValue(ref(database, "ElderTrack/Supraveghetor"), (snapshot) => {
+            const data = snapshot.val();
+            const users = Object.entries(data).map(([supraveghetorUID, user]) => ({
+                uid: supraveghetorUID,
+                firstname: user.prenume,
+                lastname: user.nume
+            }));
+            setSupervisors(users); 
+        });
+
+        onValue(ref(database, "ElderTrack/Îngrijitor"), (snapshot) => {
+            const data = snapshot.val();
+            const users = Object.entries(data).map(([ingrijitorUID, user]) => ({
+                uid: ingrijitorUID,
+                firstname: user.prenume,
+                lastname: user.nume
+            }));
+            setCaregivers(users); 
+        });
+    },[]);
+
+    const auth = getAuth();
+
     const onSubmit = () => {
-       console.log(data);
+        createUserWithEmailAndPassword(auth, data.email, data.password)
+            .then((userCredential) => {
+                const user = userCredential.user;
+
+                set(ref(database, `ElderTrack/Acces/${user.uid}`), {
+                    rol: data.userType,
+                })
+                .then(() => {
+                    if(data.userType === "medic")
+                    {
+                        set(ref(database, `ElderTrack/Medic/${user.uid}`), {
+                            CNP: data.cnp,
+                            prenume: data.firstname,
+                            nume: data.lastname
+                        })
+                        .then(() => {
+                            console.log("Data saved successfully");
+                        })
+                        .catch((error) => {
+                            console.error("Error saving data:", error);
+                        });
+                    }
+                    else if(data.userType === "supraveghetor")
+                    {
+                        set(ref(database, `ElderTrack/Supraveghetor/${user.uid}`), {
+                            CNP: data.cnp,
+                            prenume: data.firstname,
+                            nume: data.lastname
+                        })
+                        .then(() => {
+                            console.log("Data saved successfully");
+                        })
+                        .catch((error) => {
+                            console.error("Error saving data:", error);
+                        });
+                    }
+                    else if(data.userType === "ingrijitor")
+                    {
+                        set(ref(database, `ElderTrack/Îngrijitor/${user.uid}`), {
+                            CNP: data.cnp,
+                            prenume: data.firstname,
+                            nume: data.lastname
+                        })
+                        .then(() => {
+                            console.log("Data saved successfully");
+                        })
+                        .catch((error) => {
+                            console.error("Error saving data:", error);
+                        });
+                    }
+                    else if(data.userType === "pacient")
+                    {
+                        set(ref(database, `ElderTrack/Pacient/${user.uid}`), {
+                            medicUID: data.doctor,
+                            supraveghetorUID: data.supervisor,
+                            ingrijitorUID: data.caregiver,
+                            CNP: data.cnp,
+                            prenume: data.firstname,
+                            nume: data.lastname,
+                        })
+                        .then(() => {
+                            console.log("Data saved successfully");
+                        })
+                        .catch((error) => {
+                            console.error("Error saving data:", error);
+                        });
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error saving data:", error);
+                });
+
+            
+            })
+            .catch((error) => {
+                console.log("Error code:" + error.code);
+                console.log("Error message:" + error.message);
+            });
     };
-
-    const doctors = [
-        {cnp: '1234567896432', lastname: 'Popescu', firstname: 'Ion'},
-        {cnp: '1234567896435', lastname: 'Pop', firstname: 'Andrei'},
-    ];
-
-    const supervisors = [
-        {cnp: '1234567896432', lastname: 'Stan', firstname: 'Ion'},
-        {cnp: '1234567896435', lastname: 'Pop', firstname: 'George'},
-    ];
-
-    const caregivers = [
-        {cnp: '1234567896432', lastname: 'Stanescu', firstname: 'Alex'},
-        {cnp: '1234567896435', lastname: 'Albu', firstname: 'Timeea'},
-    ];
 
     return (
         <>
@@ -119,6 +224,7 @@ function CreateUserAccount() {
                                     <MenuItem value="medic">Medic</MenuItem>
                                     <MenuItem value="pacient">Pacient</MenuItem>
                                     <MenuItem value="supraveghetor">Supraveghetor</MenuItem>
+                                    <MenuItem value="ingrijitor">Îngrijitor</MenuItem>
                                 
                                 </Select>
                             </FormControl>
@@ -140,7 +246,7 @@ function CreateUserAccount() {
                                                 <MenuItem value=""><em>None</em></MenuItem>
                                                 {doctors.map((doctor, index) => {
                                                     return(
-                                                        <MenuItem value={doctor.cnp} key={index}>Dr. {doctor.lastname} {doctor.firstname}</MenuItem>
+                                                        <MenuItem value={doctor.uid} key={index}>Dr. {doctor.lastname} {doctor.firstname}</MenuItem>
                                                     )
                                                 })}
                                             </Select>
@@ -160,7 +266,7 @@ function CreateUserAccount() {
                                                 <MenuItem value=""><em>None</em></MenuItem>
                                                 {supervisors.map((supervisor, index) => {
                                                     return(
-                                                        <MenuItem value={supervisor.cnp} key={index}>{supervisor.lastname} {supervisor.firstname}</MenuItem>
+                                                        <MenuItem value={supervisor.uid} key={index}>{supervisor.lastname} {supervisor.firstname}</MenuItem>
                                                     )
                                                 })}
                                             
@@ -181,7 +287,7 @@ function CreateUserAccount() {
                                                 <MenuItem value=""><em>None</em></MenuItem>
                                                 {caregivers.map((caregiver, index) => {
                                                     return(
-                                                        <MenuItem value={caregiver.cnp} key={index}>{caregiver.lastname} {caregiver.firstname}</MenuItem>
+                                                        <MenuItem value={caregiver.uid} key={index}>{caregiver.lastname} {caregiver.firstname}</MenuItem>
                                                     )
                                                 })}
                                             

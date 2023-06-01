@@ -1,15 +1,18 @@
-import React from 'react'
+import {React, useState, useEffect} from 'react'
 import {useNavigate} from 'react-router-dom'
-import {Grid, Typography, Button, Fab, Tooltip, Box, Paper} from '@mui/material'
+import {Grid, Typography, Button, Paper} from '@mui/material'
 import {DataGrid} from '@mui/x-data-grid'
 import Navbar from '../../../components/Navbar/Navbar.js'
-import AddIcon from '@mui/icons-material/Add'
-import FolderSharedIcon from '@mui/icons-material/FolderShared';
+import FolderSharedIcon from '@mui/icons-material/FolderShared'
 import './Dashboard.css'
+import {database} from '../../../utils/firebase.js'
+import {ref, onValue} from 'firebase/database'
 
 function Dashboard() {
 
     const navigate = useNavigate();
+
+    const [rows, setRows] = useState([])
 
     const columns = [
         {field: 'id', headerName: 'ID', width: 60, hideable: false},
@@ -19,23 +22,39 @@ function Dashboard() {
         {field: 'view', headerName: 'Vizualizare dosar', width: 150, sortable: false, filterable: false, hideable: false,
             renderCell: (cellValues) => {
                 return (
-                    <Button size="small"><FolderSharedIcon/></Button>
+                    <Button size="small"><FolderSharedIcon onClick={() => navigate(`/patient/${cellValues.row.uid}`)}/></Button>
                 )
             }
-        }
+        },
+        {field: 'uid', headerName: 'UID'}
     ];
 
-    const rows = [
-        { id: 1, lastname: 'Snow', firstname: 'Jon', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 2, lastname: 'Lannister', firstname: 'Cersei', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 3, lastname: 'Lannister', firstname: 'Jaime', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 4, lastname: 'Stark', firstname: 'Arya', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 5, lastname: 'Targaryen', firstname: 'Daenerys', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 6, lastname: 'Melisandre', firstname: 'Jennifer', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 7, lastname: 'Clifford', firstname: 'Ferrara', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 8, lastname: 'Frances', firstname: 'Rossini', cnp: 5030419123456, email: 'snow@gmail.com'},
-        { id: 9, lastname: 'Roxie', firstname: 'Harvey', cnp: 5030419123456, email: 'snow@gmail.com'},
-    ];
+    useEffect(() => {
+        onValue(ref(database, 'ElderTrack/Pacient'), (snapshot) => {
+            const data = snapshot.val();
+
+            const UID = sessionStorage.getItem("uid");
+
+            const filteredPatients = Object.entries(data).reduce((filtered, [pacientUID, patient]) => {
+                if (patient.medicUID === UID) 
+                {
+                    filtered[pacientUID] = patient;
+                }
+                return filtered;
+            }, {});
+
+            const patients = Object.entries(filteredPatients).map(([pacientUID, patient], index) => ({
+                id: index + 1,
+                cnp: patient.CNP,
+                firstname: patient.prenume,
+                lastname: patient.nume,
+                uid: pacientUID
+            }));
+            setRows(patients); 
+        });
+    }, []);
+
+    const filteredColumns = columns.filter((column) => !['uid'].includes(column.field));
 
   return (
     <>
@@ -49,7 +68,7 @@ function Dashboard() {
                 <Grid item xs={12} py={1}>
                     <div style={{height: 500, width: '100%'}}>
                         <DataGrid 
-                            columns={columns}
+                            columns={filteredColumns}
                             pageSize={10}
                             rowsPerPageOptions={[10]}
                             rows={rows}
