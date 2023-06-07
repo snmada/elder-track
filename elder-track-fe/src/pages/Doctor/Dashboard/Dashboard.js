@@ -1,7 +1,7 @@
 import {React, useState, useEffect} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {Grid, Typography, Button, Paper} from '@mui/material'
-import {DataGrid} from '@mui/x-data-grid'
+import {DataGrid, GridToolbarContainer, GridToolbarFilterButton} from '@mui/x-data-grid'
 import Navbar from '../../../components/Navbar/Navbar.js'
 import FolderSharedIcon from '@mui/icons-material/FolderShared'
 import './Dashboard.css'
@@ -12,7 +12,7 @@ function Dashboard() {
 
     const navigate = useNavigate();
 
-    const [rows, setRows] = useState([])
+    const [rows, setRows] = useState([]);
 
     const columns = [
         {field: 'id', headerName: 'ID', width: 60, hideable: false},
@@ -30,56 +30,67 @@ function Dashboard() {
     ];
 
     useEffect(() => {
-        onValue(ref(database, 'ElderTrack/Pacient'), (snapshot) => {
+        onValue(ref(database, 'ElderTrack/patient'), (snapshot) => {
             const data = snapshot.val();
+            if(data)
+            {
+                const UID = sessionStorage.getItem("uid");
 
-            const UID = sessionStorage.getItem("uid");
-
-            const filteredPatients = Object.entries(data).reduce((filtered, [pacientUID, patient]) => {
-                if (patient.medicUID === UID) 
-                {
-                    filtered[pacientUID] = patient;
-                }
-                return filtered;
-            }, {});
-
-            const patients = Object.entries(filteredPatients).map(([pacientUID, patient], index) => ({
-                id: index + 1,
-                cnp: patient.CNP,
-                firstname: patient.prenume,
-                lastname: patient.nume,
-                uid: pacientUID
-            }));
-            setRows(patients); 
+                const filteredPatients = Object.entries(data).reduce((filtered, [patientUID, patient]) => {
+                    if(patient.careTeam.doctorUID === UID && !patient.deleted) 
+                    {
+                        filtered[patientUID] = patient;
+                    }
+                    return filtered;
+                }, {});
+    
+                const patients = Object.entries(filteredPatients).map(([patientUID, patient], index) => ({
+                    id: index + 1,
+                    cnp: patient.personalInfo.CNP,
+                    firstname: patient.personalInfo.firstname,
+                    lastname: patient.personalInfo.lastname,
+                    uid: patientUID
+                }));
+                setRows(patients); 
+            }
         });
     }, []);
 
     const filteredColumns = columns.filter((column) => !['uid'].includes(column.field));
 
-  return (
-    <>
-    <Navbar/>
-    <Grid container className="doctor-dashboard-container">
-        <Paper elevation={0} className="paper">
-            <Grid container>
-                <Grid item xs={12} pb={6}>
-                    <Typography className="title">Pacienți</Typography>
+    function CustomToolbar(){
+        return (
+            <GridToolbarContainer>
+                <GridToolbarFilterButton/>
+            </GridToolbarContainer>
+        )
+    }
+
+    return (
+        <>
+        <Navbar/>
+        <Grid container className="doctor-dashboard-container">
+            <Paper elevation={0} className="paper">
+                <Grid container>
+                    <Grid item xs={12} pb={6}>
+                        <Typography className="title">Pacienți</Typography>
+                    </Grid>
+                    <Grid item xs={12} py={0}>
+                        <div style={{height: 500, width: '100%'}}>
+                            <DataGrid 
+                                columns={filteredColumns}
+                                pageSize={10}
+                                rowsPerPageOptions={[10]}
+                                rows={rows}
+                                components={{Toolbar: CustomToolbar}}
+                            />
+                        </div>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} py={1}>
-                    <div style={{height: 500, width: '100%'}}>
-                        <DataGrid 
-                            columns={filteredColumns}
-                            pageSize={10}
-                            rowsPerPageOptions={[10]}
-                            rows={rows}
-                        />
-                    </div>
-                </Grid>
-            </Grid>
-        </Paper>
-    </Grid>
-    </>
-  )
+            </Paper>
+        </Grid>
+        </>
+    )
 }
 
 export default Dashboard;

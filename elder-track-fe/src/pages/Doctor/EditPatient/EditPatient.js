@@ -1,4 +1,5 @@
-import {React, useState} from 'react'
+import {React, useState, useEffect} from 'react'
+import {useParams, useNavigate} from 'react-router-dom'
 import {Grid, Typography, Button, Autocomplete, TextField, Box, Paper, Divider} from '@mui/material'
 import * as yup from 'yup'
 import {useForm} from 'react-hook-form'
@@ -6,11 +7,16 @@ import {yupResolver} from '@hookform/resolvers/yup'
 import SaveIcon from '@mui/icons-material/Save'
 import Navbar from '../../../components/Navbar/Navbar.js'
 import './EditPatient.css'
+import {database} from '../../../utils/firebase.js'
+import {ref, onValue, update} from 'firebase/database'
+import {v4 as uuidv4} from 'uuid'
 
 function EditPatient() {
 
-    const [data, setData] = useState({firstname: "", lastname: "", cnp: "", age: "", profession : "", occupation: "", street: "", number: "", buildingNumber: "", 
-    staircase: "", floor: "", apartment: "", city: "", county: "", phoneNumber: "", email: "", allergies: ""});
+    const param = useParams();
+    const navigate = useNavigate();
+
+    const [data, setData] = useState(null);
 
     const [parameter, setParameter] = useState({
         bloodPressureMin: 20, bloodPressureMax: 300,
@@ -27,10 +33,10 @@ function EditPatient() {
         setParameter({...parameter, [e.target.name]: parsedValue});
     };
 
-    const [treatment, setTreatment] = useState([{description: ""}]);
+    const [treatment, setTreatment] = useState([{id: uuidv4(), description: "", remarks: "", solvedDate: "",  solvedHour: "", status: ""}]);
 
     const handleAddTreatment = () => {
-        setTreatment([...treatment, {description: ""}]);
+        setTreatment([...treatment, {id: uuidv4(), description: "", remarks: "", solvedDate: "",  solvedHour: "", status: ""}]);
     };
     
     const handleTreatmentChange = (index, event) => {
@@ -42,14 +48,15 @@ function EditPatient() {
 
     const handleDeleteTreatment = (index) => {
         const updatedTreatment= [...treatment];
-        updatedTreatment.splice(index, 1);
+        updatedTreatment[index] = { ...updatedTreatment[index], description: "-"};
+        console.log(updatedTreatment)
         setTreatment(updatedTreatment);
     };
 
-    const [medicalHistory, setMedicalHistory] = useState([{diagnosis: "", treatment: "", medicationSchedule: ""}]);
+    const [medicalHistory, setMedicalHistory] = useState([{id: uuidv4(), diagnosis: "", treatment: "", medicationSchedule: ""}]);
     
     const handleAddHistory = () => {
-        setMedicalHistory([...medicalHistory, {diagnosis: "", treatment: "", medicationSchedule: ""}]);
+        setMedicalHistory([...medicalHistory, {id: uuidv4(), diagnosis: "", treatment: "", medicationSchedule: ""}]);
     };
     
     const handleMedicalHistoryChange = (index, event) => {
@@ -61,14 +68,14 @@ function EditPatient() {
 
     const handleDeleteMedicalHistory = (index) => {
         const updatedMedicalHistory = [...medicalHistory];
-        updatedMedicalHistory.splice(index, 1);
+        updatedMedicalHistory[index] = { ...updatedMedicalHistory[index], diagnosis: "-", treatment: "-", medicationSchedule: "-"};
         setMedicalHistory(updatedMedicalHistory);
     };
 
-    const [recommendation, setRecommendation] = useState([{type: "", duration: "", note: ""}]);
+    const [recommendation, setRecommendation] = useState([{id: uuidv4(), type: "", duration: "", notes: ""}]);
 
     const handleAddRecommendation = () => {
-        setRecommendation([...recommendation, {type: "", duration: "", note: ""}]);
+        setRecommendation([...recommendation, {id: uuidv4(), type: "", duration: "", notes: ""}]);
     };
     
     const handleRecommendationChange = (index, event) => {
@@ -80,14 +87,103 @@ function EditPatient() {
 
     const handleDeleteRecommendation = (index) => {
         const updatedRecommendation = [...recommendation];
-        updatedRecommendation.splice(index, 1);
+        updatedRecommendation[index] = { ...updatedRecommendation[index], type: "-", duration: "-", notes: "-"};
         setRecommendation(updatedRecommendation);
     };
+
+    const handleChange = (e) => {
+        if(e.target.name === 'CNP' && e.target.value.length === 13)
+        {
+            const age = getAge(e.target.value);
+            setData({...data, CNP: e.target.value, age: age});
+        }
+        else
+        {
+            setData({...data, [e.target.name]: e.target.value});
+        }
+    }
+
+    const getAge = (cnp) => {
+        let year, month, day, age, month_difference="", full_year="";
+
+        if(cnp.substring(0,1) === "1" || cnp.substring(0,1) === "2")
+        {
+            year = parseInt("19" + cnp.substring(1,3));
+        }
+        if(cnp.substring(0,1) === "5" || cnp.substring(0,1) === "6")
+        {
+            year = parseInt("20" + cnp.substring(1,3));
+        }
+
+        month = cnp.substring(3, 5);
+        day = cnp.substring(5, 7);
+
+        month_difference = Date.now() - new Date(month + "/" + day + "/" + year).getTime();
+        full_year = new Date(month_difference).getUTCFullYear();
+
+        age = Math.abs(full_year - 1970);
+
+        return age;
+    }
+
+    useEffect(() => {
+        onValue(ref(database, `ElderTrack/patient/${param.id}/personalInfo`), (snapshot) => {
+            const patient = snapshot.val();
+            setData(patient);
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/normalMedicalRanges`), (snapshot) => {
+            const parameter = snapshot.val();
+            setParameter(parameter);
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/treatment`), (snapshot) => {
+            const treatment = snapshot.val();
+
+            if(treatment)
+            {
+                const treatments = Object.entries(treatment).filter(([treatmentID, treatment]) => treatment.status !== "solved" && !treatment.deleted)
+                .map(([treatmentID, treatment], index) => ({
+                    id: treatmentID,
+                    ...treatment
+                }));
+                setTreatment(treatments);
+            }
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/recommendation`), (snapshot) => {
+            const recommendation = snapshot.val();
+
+            if(recommendation)
+            {
+                const recommendations = Object.entries(recommendation).filter(([recommendationID, recommendation]) => !recommendation.deleted)
+                .map(([recommendationID, recommendation], index) => ({
+                    id: recommendationID,
+                    ...recommendation
+                }));
+                setRecommendation(recommendations);
+            }
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/medicalHistory`), (snapshot) => {
+            const medicalHistory = snapshot.val();
+
+            if(medicalHistory)
+            {
+                const medicalHistories = Object.entries(medicalHistory).filter(([medicalHistoryID, medicalHistory]) => !medicalHistory.deleted)
+                .map(([medicalHistoryID, medicalHistory], index) => ({
+                    id: medicalHistoryID,
+                    ...medicalHistory
+                }));
+                setMedicalHistory(medicalHistories);
+            }
+        });
+    }, []);
 
     const schema = yup.object().shape({
         lastname: yup.string().matches(/[a-zA-ZăâîșțĂÂÎȘȚ -]+$/, "Nume invalid!"),
         firstname: yup.string().matches(/[a-zA-ZăâîșțĂÂÎȘȚ -]+$/, "Prenume invalid!"),
-        cnp: yup.string().min(13, "CNP invalid!").max(13, "CNP invalid!"),
+        CNP: yup.string().min(13, "CNP invalid!").max(13, "CNP invalid!"),
         email: yup.string().email("Adresa de e-mail este invalidă!"),
         phoneNumber: yup.string().matches(/^[0-9]+$/, "Număr invalid!").min(10, "Număr invalid!").max(10, "Număr invalid!"),
         bloodPressureMin: yup.number()
@@ -120,50 +216,78 @@ function EditPatient() {
         resolver: yupResolver(schema),
     });
 
-    const handleChange = (e) => {
-        if(e.target.name === 'cnp' && e.target.value.length === 13)
-        {
-            const age = getAge(e.target.value);
-            setData({...data, cnp: e.target.value, age: age});
-        }
-        else
-        {
-            setData({...data, [e.target.name]: e.target.value});
-        }
-    }
-
-    const getAge = (cnp) => {
-        let year, month, day, age, month_difference="", full_year="";
-
-        if(cnp.substring(0,1) === "1" || cnp.substring(0,1) === "2")
-        {
-            year = parseInt("19" + cnp.substring(1,3));
-        }
-        if(cnp.substring(0,1) === "5" || cnp.substring(0,1) === "6")
-        {
-            year = parseInt("20" + cnp.substring(1,3));
-        }
-
-        month = cnp.substring(3, 5);
-        day = cnp.substring(5, 7);
-
-        month_difference = Date.now() - new Date(month + "/" + day + "/" + year).getTime();
-        full_year = new Date(month_difference).getUTCFullYear();
-
-        age = Math.abs(full_year - 1970);
-
-        return age;
-    }
-
-    const onSubmit = async () => {
+     const onSubmit = () => {
         const filteredTreatment = treatment.filter(entry => entry.description !== "");
-        const filteredRecommendation = recommendation.filter(entry => entry.type !== "" && entry.duration !== "" && entry.note !== "");
+        const filteredRecommendation = recommendation.filter(entry => entry.type !== "" && entry.duration !== "");
         const filteredHistory = medicalHistory.filter(entry => entry.diagnosis !== "" && entry.treatment !== "" && entry.medicationSchedule !== "");
-        console.log(filteredTreatment);
-        console.log(filteredRecommendation);
-        console.log(filteredHistory);
-        console.log(data);
-        console.log(parameter);
+
+        update(ref(database, `ElderTrack/patient/${param.id}/personalInfo`), data)
+        .then(() => {
+            update(ref(database, `ElderTrack/patient/${param.id}/normalMedicalRanges`), parameter)
+                .then(() => {
+                    const treatmentPromises = filteredTreatment.map(({ id, ...rest }, index) => {
+                        if(rest.description === "-") 
+                        {
+                            const updates = { 
+                                deleted: true 
+                            };
+                            return update(ref(database, `ElderTrack/patient/${param.id}/treatment/${id}`), updates)
+                            .then(() => {
+                                handleDeleteTreatment(index);
+                            });
+                        } 
+                        else 
+                        {
+                            return update(ref(database, `ElderTrack/patient/${param.id}/treatment/${id}`), rest);
+                        }
+                    });
+        
+                    const recommendationPromises = filteredRecommendation.map(({ id, ...rest }, index) => {
+                        if(rest.type === "-" && rest.duration === "-" && rest.notes === "-") 
+                        {
+                            const updates = { 
+                                deleted: true 
+                            };
+                            return update(ref(database, `ElderTrack/patient/${param.id}/recommendation/${id}`), updates)
+                            .then(() => {
+                                handleDeleteRecommendation(index);
+                            });
+                        } 
+                        else 
+                        {
+                            return update(ref(database, `ElderTrack/patient/${param.id}/recommendation/${id}`), rest);
+                        }
+                    });
+        
+                    const historyPromises = filteredHistory.map(({ id, ...rest }, index) => {
+                        if(rest.diagnosis === "-" && rest.treatment === "-" && rest.medicationSchedule === "-") 
+                        {
+                            const updates = { 
+                                deleted: true 
+                            };
+                            return update(ref(database, `ElderTrack/patient/${param.id}/medicalHistory/${id}`), updates)
+                            .then(() => {
+                                handleDeleteMedicalHistory(index);
+                            });
+                        } 
+                        else 
+                        {
+                            return update(ref(database, `ElderTrack/patient/${param.id}/medicalHistory/${id}`), rest);
+                        }
+                    });
+        
+                    Promise.all([...treatmentPromises, ...recommendationPromises, ...historyPromises])
+                    .then(() => {
+                        navigate(`/patient/${param.id}`);
+                    })
+                    .catch((error) => {
+                        alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                    });
+                })
+            })
+        .catch((error) => {
+            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+        });
     }
 
   return (
@@ -177,6 +301,7 @@ function EditPatient() {
                 </Grid>
                 <Grid item xs={12} py={1}>
                     <form onSubmit={handleSubmit(onSubmit)}>
+                    {data && parameter && (
                         <Paper elevation={5} sx={{padding:'45px 50px'}}>
                             <Grid container>
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
@@ -217,18 +342,18 @@ function EditPatient() {
                                 <Grid item xs={12} sm={4} p={1}>
                                     <TextField 
                                         required 
-                                        name="cnp" 
+                                        name="CNP" 
                                         type="text"  
                                         label="CNP (Cod Numeric Personal)" 
                                         placeholder="Introduceți CNP-ul..." 
                                         variant="standard" 
                                         size="small" 
                                         fullWidth 
-                                        value={data.cnp}
-                                        {...register("cnp")} 
+                                        value={data.CNP}
+                                        {...register("CNP")} 
                                         onChange={handleChange}
                                     />
-                                    <Typography className="error">{errors.cnp?.message}</Typography>
+                                    <Typography className="error">{errors.CNP?.message}</Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={2} p={1}>
                                     <TextField 
@@ -640,122 +765,137 @@ function EditPatient() {
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Tratamente</Typography>
                                 </Grid>
-                                {treatment.map((value, index) => (
-                                    <div key={index} style={{width: '100%'}}>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <TextField 
-                                                name="description" 
-                                                type="text"  
-                                                label="Descriere" 
-                                                fullWidth 
-                                                value={value.description}
-                                                onChange={(event) => handleTreatmentChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} pb={0}>
-                                            <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
-                                                <Button onClick={() => handleDeleteTreatment(index)} sx={{color: 'red'}}>ȘTERGE</Button>
-                                            </Box>
-                                        </Grid>
-                                    </div>
-                                ))}
+                                {treatment.map((value, index) => {
+                                    if (value.description !== "-") 
+                                    {
+                                        return (
+                                            <div key={index} style={{width: '100%'}}>
+                                                <Grid item xs={12} sm={12} p={1}>
+                                                    <TextField 
+                                                        name="description" 
+                                                        type="text"  
+                                                        label="Descriere" 
+                                                        fullWidth 
+                                                        value={value.description}
+                                                        onChange={(event) => handleTreatmentChange(index, event)}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} pb={0}>
+                                                    <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                                                        <Button onClick={() => handleDeleteTreatment(index)} sx={{color: 'red'}}>ȘTERGE</Button>
+                                                    </Box>
+                                                </Grid>
+                                            </div>
+                                        );
+                                    } 
+                                })}
                                  <Grid item xs={12} pb={6}>
                                     <Button onClick={handleAddTreatment}>+ ADAUGĂ</Button>
                                 </Grid>
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Recomandări</Typography>
                                 </Grid>
-                                {recommendation.map((value, index) => (
-                                    <div key={index} style={{width: '100%'}}>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <TextField 
-                                                name="type" 
-                                                type="text"  
-                                                label="Tipul recomandării" 
-                                                placeholder="Ex: bicicletă, alergat, plimbare" 
-                                                fullWidth 
-                                                value={value.type}
-                                                onChange={(event) => handleRecommendationChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <TextField
-                                                name="duration"
-                                                type="text"  
-                                                label="Durata zilnică" 
-                                                fullWidth
-                                                value={value.duration}
-                                                onChange={(event) => handleRecommendationChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <TextField
-                                                name="note"
-                                                label="Alte indicații" 
-                                                multiline
-                                                maxRows={10}
-                                                fullWidth
-                                                value={value.note}
-                                                onChange={(event) => handleRecommendationChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} pb={0}>
-                                            <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
-                                                <Button onClick={() => handleDeleteRecommendation(index)} sx={{color: 'red'}}>ȘTERGE</Button>
-                                            </Box>
-                                        </Grid>
-                                    </div>
-                                ))}
+                                {recommendation.map((value, index) => {
+                                    if(value.type !== "-" && value.duration !== "-" && value.notes !== "-")
+                                    {
+                                        return (
+                                            <div key={index} style={{width: '100%'}}>
+                                                <Grid item xs={12} sm={12} p={1}>
+                                                    <TextField 
+                                                        name="type" 
+                                                        type="text"  
+                                                        label="Tipul recomandării" 
+                                                        placeholder="Ex: bicicletă, alergat, plimbare" 
+                                                        fullWidth 
+                                                        value={value.type}
+                                                        onChange={(event) => handleRecommendationChange(index, event)}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={12} p={1}>
+                                                    <TextField
+                                                        name="duration"
+                                                        type="text"  
+                                                        label="Durata zilnică" 
+                                                        fullWidth
+                                                        value={value.duration}
+                                                        onChange={(event) => handleRecommendationChange(index, event)}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={12} p={1}>
+                                                    <TextField
+                                                        name="notes"
+                                                        label="Alte indicații" 
+                                                        multiline
+                                                        maxRows={10}
+                                                        fullWidth
+                                                        value={value.notes}
+                                                        onChange={(event) => handleRecommendationChange(index, event)}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} pb={0}>
+                                                    <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                                                        <Button onClick={() => handleDeleteRecommendation(index)} sx={{color: 'red'}}>ȘTERGE</Button>
+                                                    </Box>
+                                                </Grid>
+                                            </div>
+                                        )
+                                    }
+                                })}
                                 <Grid item xs={12} pb={6}>
                                     <Button onClick={handleAddRecommendation}>+ ADAUGĂ</Button>
                                 </Grid>
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Istoric</Typography>
                                 </Grid>
-                                {medicalHistory.map((value, index) => (
-                                    <div key={index} style={{width: '100%'}}>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <TextField 
-                                                name="diagnosis" 
-                                                type="text"  
-                                                label="Diagnostic" 
-                                                placeholder="Introduceți diagnosticul..." 
-                                                fullWidth 
-                                                value={value.diagnosis}
-                                                onChange={(event) => handleMedicalHistoryChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <TextField
-                                                name="treatment"
-                                                label="Tratament" 
-                                                placeholder="Introduceți tratamentul..."
-                                                multiline
-                                                maxRows={10}
-                                                fullWidth
-                                                value={value.treatment}
-                                                onChange={(event) => handleMedicalHistoryChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} p={1}>
-                                            <TextField
-                                                name="medicationSchedule"
-                                                label="Schema de medicație" 
-                                                placeholder="Introduceți schema de medicație..."
-                                                multiline
-                                                maxRows={10}
-                                                fullWidth
-                                                value={value.medicationSchedule}
-                                                onChange={(event) => handleMedicalHistoryChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} pb={0}>
-                                            <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
-                                                <Button onClick={() => handleDeleteMedicalHistory(index)} sx={{color: 'red'}}>ȘTERGE</Button>
-                                            </Box>
-                                        </Grid>
-                                    </div>
-                                ))}
+                                {medicalHistory.map((value, index) => {
+                                    if(value.diagnosis !== "-" && value.treatment !== "-" && value.medicationSchedule !== "-")
+                                    {
+                                        return (
+                                            <div key={index} style={{width: '100%'}}>
+                                                <Grid item xs={12} sm={12} p={1}>
+                                                    <TextField 
+                                                        name="diagnosis" 
+                                                        type="text"  
+                                                        label="Diagnostic" 
+                                                        placeholder="Introduceți diagnosticul..." 
+                                                        fullWidth 
+                                                        value={value.diagnosis}
+                                                        onChange={(event) => handleMedicalHistoryChange(index, event)}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={12} p={1}>
+                                                    <TextField
+                                                        name="treatment"
+                                                        label="Tratament" 
+                                                        placeholder="Introduceți tratamentul..."
+                                                        multiline
+                                                        maxRows={10}
+                                                        fullWidth
+                                                        value={value.treatment}
+                                                        onChange={(event) => handleMedicalHistoryChange(index, event)}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} p={1}>
+                                                    <TextField
+                                                        name="medicationSchedule"
+                                                        label="Schema de medicație" 
+                                                        placeholder="Introduceți schema de medicație..."
+                                                        multiline
+                                                        maxRows={10}
+                                                        fullWidth
+                                                        value={value.medicationSchedule}
+                                                        onChange={(event) => handleMedicalHistoryChange(index, event)}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} pb={0}>
+                                                    <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
+                                                        <Button onClick={() => handleDeleteMedicalHistory(index)} sx={{color: 'red'}}>ȘTERGE</Button>
+                                                    </Box>
+                                                </Grid>
+                                            </div>
+                                        )
+                                    }
+                                })}
                                 <Grid item xs={12} pb={6}>
                                     <Button onClick={handleAddHistory}>+ ADAUGĂ</Button>
                                 </Grid>
@@ -767,6 +907,7 @@ function EditPatient() {
                                 </Grid>
                             </Grid>
                         </Paper>
+                    )}
                     </form>
                 </Grid>
             </Grid>

@@ -6,9 +6,9 @@ import CreateUserAccount from './pages/Admin/CreateUserAccount/CreateUserAccount
 import DoctorDashboard from './pages/Doctor/Dashboard/Dashboard.js'
 import EditPatient from './pages/Doctor/EditPatient/EditPatient.js'
 import PatientProfile from './pages/Doctor/PatientProfile/PatientProfile.js'
-import AddMedicalExamination from './pages/Doctor/AddMedicalExamination/AddMedicalExamination.js'
-import ViewMedicalExamination from './pages/Doctor/ViewMedicalExamination/ViewMedicalExamination.js'
-import EditMedicalExamination from './pages/Doctor/EditMedicalExamination/EditMedicalExamination.js'
+import AddMedicalRecord from './pages/Doctor/AddMedicalRecord/AddMedicalRecord.js'
+import ViewMedicalRecord from './pages/Doctor/ViewMedicalRecord/ViewMedicalRecord.js'
+import EditMedicalRecord from './pages/Doctor/EditMedicalRecord/EditMedicalRecord.js'
 
 function App() {
     return (
@@ -19,11 +19,11 @@ function App() {
                 <Route exact path="/admin-dashboard" element={<AdminDashboard/>}/>
                 <Route exact path="/create-user" element={<CreateUserAccount/>}/>
                 <Route exact path="/doctor-dashboard" element={<DoctorDashboard/>}/>
-                <Route exact path="/edit-patient" element={<EditPatient/>}/>
+                <Route exact path="/edit-patient/:id" element={<EditPatient/>}/>
                 <Route exact path="/patient/:id" element={<PatientProfile/>}/>
-                <Route exact path="/add-medical-examination" element={<AddMedicalExamination/>}/>
-                <Route exact path="/view-medical-examination" element={<ViewMedicalExamination/>}/>
-                <Route exact path="/edit-medical-examination" element={<EditMedicalExamination/>}/>
+                <Route exact path="/add-medical-record/:id" element={<AddMedicalRecord/>}/>
+                <Route exact path="/view-medical-record/:id_patient/:id_medical_record" element={<ViewMedicalRecord/>}/>
+                <Route exact path="/edit-medical-record/:id_patient/:id_medical_record" element={<EditMedicalRecord/>}/>
             </Routes>
         </BrowserRouter>
     )

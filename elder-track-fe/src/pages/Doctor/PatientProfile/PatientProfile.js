@@ -1,75 +1,148 @@
-import {React, useState} from 'react'
-import {useNavigate} from 'react-router-dom'
-import {Grid, Typography, Button, Box, Paper, TextField} from '@mui/material'
-import {DataGrid} from '@mui/x-data-grid'
+import {React, useState, useEffect} from 'react'
+import {useNavigate, useParams} from 'react-router-dom'
+import {Grid, Typography, Button, Box, Paper, TextField, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions} from '@mui/material'
+import {DataGrid, GridToolbarContainer, GridToolbarFilterButton} from '@mui/x-data-grid'
 import Navbar from '../../../components/Navbar/Navbar.js'
 import DescriptionIcon from '@mui/icons-material/Description';
 import './PatientProfile.css'
+import {database} from '../../../utils/firebase.js'
+import {ref, onValue, update} from 'firebase/database'
 
 function PatientProfile() {
 
     const navigate = useNavigate();
+    const param = useParams();
+    const [data, setData] = useState([]);
+    const [parameter, setParameter] = useState([]);
+    const [solvedTreatment, setSolvedTreatment] = useState([]);
+    const [unsolvedTreatment, setUnsolvedTreatment] = useState([]);
+    const [medicalHistory, setMedicalHistory] = useState([]);
+    const [recommendation, setRecommendation] = useState([]);
+    const [rows, setRows] = useState([])
 
-    const patient = {
-        firstname: "-", 
-        lastname: "-", 
-        cnp: "-", 
-        age: "-", 
-        profession : "-",
-        occupation: "-", 
-        street: "-", 
-        number: "-", 
-        buildingNumber: "-", 
-        staircase: "-", 
-        floor: "-", 
-        apartment: "-", 
-        city: "-", 
-        county: "-", 
-        phoneNumber: "-", 
-        email: "-", 
-        allergies: "-", 
-        treatment: "-",
-        recommendation: "-",
-        medicalHistory: "-",
-    };
+    useEffect(() => {
+        onValue(ref(database, `ElderTrack/patient/${param.id}/personalInfo`), (snapshot) => {
+            const patient = snapshot.val();
+            setData(patient);
+        });
 
-    const parameter = {
-        bloodPressureMin: 20, bloodPressureMax: 300,
-        pulseMin: 40, pulseMax: 200,
-        bodyTemperatureMin: 30.0, bodyTemperatureMax: 42.0,
-        weightMin: 30.00, weightMax: 200.00,
-        glucoseMin: 10, glucoseMax: 400,
-        ambientTemperatureMin: 5, ambientTemperatureMax: 90
+        onValue(ref(database, `ElderTrack/patient/${param.id}/normalMedicalRanges`), (snapshot) => {
+            const parameter = snapshot.val();
+            setParameter(parameter);
+        });
 
-    };
+        onValue(ref(database, `ElderTrack/patient/${param.id}/treatment`), (snapshot) => {
+            const treatment = snapshot.val();
 
-    const [data, setData] = useState(patient);
+            if(treatment)
+            {
+                const solvedTreatments = Object.entries(treatment).filter(([treatmentID, treatment]) => treatment.status == "solved" && !treatment.deleted)
+                .map(([treatmentID, treatment], index) => ({
+                    id: treatmentID,
+                    ...treatment
+                }));
+                setSolvedTreatment(solvedTreatments);
+
+                const unsolvedTreatments = Object.entries(treatment).filter(([treatmentID, treatment]) => treatment.status !== "solved" && !treatment.deleted)
+                .map(([treatmentID, treatment], index) => ({
+                    id: treatmentID,
+                    ...treatment
+                }));
+                setUnsolvedTreatment(unsolvedTreatments);
+            }
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/recommendation`), (snapshot) => {
+            const recommendation = snapshot.val();
+
+            if(recommendation)
+            {
+                const recommendations = Object.entries(recommendation).filter(([recommendationID, recommendation]) => !recommendation.deleted)
+                .map(([recommendationID, recommendation], index) => ({
+                    id: recommendationID,
+                    ...recommendation
+                }));
+                setRecommendation(recommendations);
+            }
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/medicalHistory`), (snapshot) => {
+            const medicalHistory = snapshot.val();
+
+            if(medicalHistory)
+            {
+                const medicalHistories = Object.entries(medicalHistory).filter(([medicalHistoryID, medicalHistory]) => !medicalHistory.deleted)
+                .map(([medicalHistoryID, medicalHistory], index) => ({
+                    id: medicalHistoryID,
+                    ...medicalHistory
+                }));
+                setMedicalHistory(medicalHistories);
+            }
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/medicalRecord`), (snapshot) => {
+            const medicalRecord = snapshot.val();
+
+            if(medicalRecord)
+            {
+                const filteredMedicalRecords = Object.entries(medicalRecord).filter(([medicalRecordID, medicalRecord]) => !medicalRecord.deleted)
+                .map(([medicalRecordID, medicalRecord], index) => ({
+                    id: index + 1,
+                    date: new Date(medicalRecord.info.date),
+                    uid: medicalRecordID
+                }));
+                setRows(filteredMedicalRecords); 
+            }
+        });
+    }, []);
 
     const columns = [
-        {field: 'id', headerName: 'No.', width: 150},
+        {field: 'id', headerName: 'ID', width: 150},
         {field: 'date', headerName: 'Data', type: 'date', width: 250},
         {field: 'view', headerName: 'Vizualizare', width: 85, sortable: false, filterable: false,
             renderCell: (cellValues) => {
                 return (
-                    <Button><DescriptionIcon/></Button>
+                    <Button onClick={() => {navigate(`/view-medical-record/${param.id}/${cellValues.row.uid}`)}}><DescriptionIcon/></Button>
                 )
             },
         },
+        {field: 'uid', headerName: 'UID'}
     ];
 
-    const rows = [
-        { id: 1, date: new Date('2022','09','03')},
-        { id: 2, date: new Date('2022','09','03')},
-        { id: 3, date: new Date('2022','09','03')},
-        { id: 4, date: new Date('2022','09','03')},
-        { id: 5, date: new Date('2022','09','03')},
-        { id: 6, date: new Date('2022','09','03')},
-        { id: 7, date: new Date('2022','09','03')},
-        { id: 8, date: new Date('2022','09','03')},
-        { id: 9, date: new Date('2022','09','03')},
-    ];
+    const filteredColumns = columns.filter((column) => !['uid'].includes(column.field));
 
-  return (
+    const [open, setOpen] = useState(false);
+    
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const deletePatient = () => {
+        const updates = {
+            deleted: true
+        };
+        update(ref(database, `ElderTrack/patient/${param.id}`), updates)
+        .then(() => {
+            navigate("/doctor-dashboard")
+        })
+        .catch((error) => {
+            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+        })
+    }
+
+    function CustomToolbar(){
+        return (
+            <GridToolbarContainer>
+                <GridToolbarFilterButton/>
+            </GridToolbarContainer>
+        )
+    }
+
+return (
     <>
     <Navbar/>
     <Grid container className="patient-profile-container">
@@ -80,9 +153,9 @@ function PatientProfile() {
                 </Grid>
                 <Grid item xs={6} pb={2}>
                     <Box display='flex' justifyContent='flex-end'>
-                        <Button variant="contained" sx={{mr: 2, background: '#3F3B6C'}}>ADĂUGARE CONSULTAȚIE</Button>
-                        <Button variant="contained" onClick={() => {navigate("/edit-patient")}} sx={{mr: 2, background: '#FFE69A', color: 'black', "&:hover":{color: 'white'}}}>EDITARE</Button>
-                        <Button variant="contained" sx={{background: '#E45B5F'}}>ȘTERGERE</Button>
+                        <Button variant="contained" onClick={() => {navigate(`/add-medical-record/${param.id}`)}} sx={{mr: 2}}>ADĂUGARE CONSULTAȚIE</Button>
+                        <Button variant="contained" onClick={() => {navigate(`/edit-patient/${param.id}`)}} sx={{mr: 2, background: '#002B5B'}}>EDITARE</Button>
+                        <Button variant="contained" sx={{background: '#E45B5F'}} onClick={handleOpen}>ȘTERGERE</Button>
                     </Box>
                 </Grid>
                 <Grid item xs={6} py={1}>
@@ -98,7 +171,7 @@ function PatientProfile() {
                                 <Typography><b>Prenume:</b> {data.firstname}</Typography>
                             </Grid>
                             <Grid item xs={12} sm={6} p={1}>
-                                <Typography><b>CNP:</b> {data.cnp}</Typography>
+                                <Typography><b>CNP:</b> {data.CNP}</Typography>
                             </Grid>
                             <Grid item xs={12} sm={6} p={1}>
                                 <Typography><b>Vârsta:</b> {data.age}</Typography>
@@ -157,10 +230,11 @@ function PatientProfile() {
                             <Grid item xs={12} sm={12} py={1} pl={1}>
                                 <div style={{height: 500, width: '100%'}}>
                                     <DataGrid 
-                                        columns={columns}
+                                        columns={filteredColumns}
                                         pageSize={10}
                                         rowsPerPageOptions={[10]}
                                         rows={rows}
+                                        components={{Toolbar: CustomToolbar}}
                                     />
                                 </div>
                             </Grid>
@@ -187,7 +261,7 @@ function PatientProfile() {
                                     label="min"
                                     type="number"
                                     name="bloodPressureMin"
-                                    defaultValue={parameter.bloodPressureMin}
+                                    value={parameter.bloodPressureMin}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -199,7 +273,7 @@ function PatientProfile() {
                                     label="max"
                                     type="number"
                                     name="bloodPressureMax"
-                                    defaultValue={parameter.bloodPressureMax}
+                                    value={parameter.bloodPressureMax}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -216,7 +290,7 @@ function PatientProfile() {
                                     label="min"
                                     type="number"
                                     name="pulseMin"
-                                    defaultValue={parameter.pulseMin}
+                                    value={parameter.pulseMin}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -228,7 +302,7 @@ function PatientProfile() {
                                     label="max"
                                     type="number"
                                     name="pulseMax"
-                                    defaultValue={parameter.pulseMax}
+                                    value={parameter.pulseMax}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -245,7 +319,7 @@ function PatientProfile() {
                                     label="min"
                                     type="number"
                                     name="bodyTemperatureMin"
-                                    defaultValue={parameter.bodyTemperatureMin}
+                                    value={parameter.bodyTemperatureMin}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -257,7 +331,7 @@ function PatientProfile() {
                                     label="max"
                                     type="number"
                                     name="bodyTemperatureMax"
-                                    defaultValue={parameter.bodyTemperatureMax}
+                                    value={parameter.bodyTemperatureMax}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -274,7 +348,7 @@ function PatientProfile() {
                                     label="min"
                                     type="number"
                                     name="weightMin"
-                                    defaultValue={parameter.weightMin}
+                                    value={parameter.weightMin}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -286,7 +360,7 @@ function PatientProfile() {
                                     label="max"
                                     type="number"
                                     name="weightMax"
-                                    defaultValue={parameter.weightMax}
+                                    value={parameter.weightMax}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -303,7 +377,7 @@ function PatientProfile() {
                                     label="min"
                                     type="number"
                                     name="glucoseMin"
-                                    defaultValue={parameter.glucoseMin}
+                                    value={parameter.glucoseMin}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -315,7 +389,7 @@ function PatientProfile() {
                                     label="max"
                                     type="number"
                                     name="glucoseMax"
-                                    defaultValue={parameter.glucoseMax}
+                                    value={parameter.glucoseMax}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -332,7 +406,7 @@ function PatientProfile() {
                                     label="min"
                                     type="number"
                                     name="ambientTemperatureMin"
-                                    defaultValue={parameter.ambientTemperatureMin}
+                                    value={parameter.ambientTemperatureMin}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -344,7 +418,7 @@ function PatientProfile() {
                                     label="max"
                                     type="number"
                                     name="ambientTemperatureMax"
-                                    defaultValue={parameter.ambientTemperatureMax}
+                                    value={parameter.ambientTemperatureMax}
                                     sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
                                     InputProps={{
                                         inputProps: {
@@ -357,19 +431,63 @@ function PatientProfile() {
                                 <Typography variant="h6" className="description">Tratamente</Typography>
                             </Grid>
                             <Grid item xs={12} p={1}>
-                                <Typography>{data.treatment}</Typography>
+                                <Typography sx={{fontSize: '18px'}}>Rezolvate : </Typography>
+                                {
+                                    solvedTreatment.map((value, index) => {
+                                        return(
+                                            <Grid item xs={12} my={3} py={1} mx={5} sx={{borderBottom: '1px solid grey'}} key={index}>
+                                                <Typography>Descriere: {value.description}</Typography>
+                                                <Typography>Observații: {value.remarks}</Typography>
+                                                <Typography>Data rezolvării: {value.solvedDate}</Typography>
+                                                <Typography>Ora rezolvării: {value.solvedHour}</Typography>
+                                            </Grid>
+                                        )
+                                    })
+                                }
+                            </Grid>
+                            <Grid item xs={12} p={1}>
+                                <Typography sx={{fontSize: '18px'}}>Nerezolvate :</Typography>
+                                {
+                                    unsolvedTreatment.map((value, index) => {
+                                        return(
+                                            <Grid item xs={12} my={3} py={1} mx={5} sx={{borderBottom: '1px solid grey'}} key={index}>
+                                                <Typography>Descriere: {value.description}</Typography>
+                                            </Grid>
+                                        )
+                                    })
+                                }
                             </Grid>
                             <Grid item xs={12} mt={2} px={1} pb={1}>
                                 <Typography variant="h6" className="description">Recomandări</Typography>
                             </Grid>
                             <Grid item xs={12} p={1}>
-                                <Typography>{data.recommendation}</Typography>
+                            {
+                                recommendation.map((value, index) => {
+                                    return(
+                                        <Grid item xs={12} my={3} py={1} mx={5} sx={{borderBottom: '1px solid grey'}} key={index}>
+                                            <Typography>Tip: {value.type}</Typography>
+                                            <Typography>Durată: {value.duration}</Typography>
+                                            <Typography>Indicații: {value.notes}</Typography>
+                                        </Grid>
+                                    )
+                                })
+                            }
                             </Grid>
                             <Grid item xs={12} mt={2} px={1} pb={1}>
                                 <Typography variant="h6" className="description">Istoric</Typography>
                             </Grid>
                             <Grid item xs={12} p={1}>
-                                <Typography>{data.medicalHistory}</Typography>
+                            {
+                                medicalHistory.map((value, index) => {
+                                    return(
+                                        <Grid item xs={12} my={3} py={1} mx={5} sx={{borderBottom: '1px solid grey'}} key={index}>
+                                            <Typography>Diagnostic: {value.diagnosis}</Typography>
+                                            <Typography>Tratament: {value.treatment}</Typography>
+                                            <Typography>Schema de medicație: {value.medicationSchedule}</Typography>
+                                        </Grid>
+                                    )
+                                })
+                            }
                             </Grid>
                         </Grid>
                     </Paper>
@@ -377,8 +495,20 @@ function PatientProfile() {
             </Grid>
         </Paper>
     </Grid>
+    <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>{"Confirmare Ștergere"}</DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+                Sunteți sigur că doriți să ștergeți utilizatorul selectat?
+            </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => deletePatient()} sx={{background: '#E45B5F', color: '#FBFBFB', "&:hover": {background: '#FFB84C'}}}>Șterge</Button>
+            <Button onClick={handleClose}>Anulare</Button>
+        </DialogActions>
+    </Dialog>
     </>
-  )
+)
 }
 
 export default PatientProfile
