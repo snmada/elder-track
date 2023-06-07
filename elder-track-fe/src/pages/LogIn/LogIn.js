@@ -41,13 +41,13 @@ function LogIn() {
             .then((userCredential) => {
                 const user = userCredential.user;
 
-                onValue(ref(database, `ElderTrack/Acces/${user.uid}`), (snapshot) => {
+                onValue(ref(database, `ElderTrack/access/${user.uid}`), (snapshot) => {
                     const data = snapshot.val();
 
-                    sessionStorage.setItem("role", data.rol);
+                    sessionStorage.setItem("role", data.role);
                     sessionStorage.setItem("uid", user.uid);
 
-                    if(data.rol === "medic")
+                    if(data.role === "doctor")
                     {
                         navigate("/doctor-dashboard");
                     }

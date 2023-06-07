@@ -1,16 +1,16 @@
-.edit-medical-examination-container{
+.edit-medical-record-container{
     min-height: 90vh;
     justify-content: center;
     background: #EBEDF5;
 }
 
-.edit-medical-examination-container .paper{
+.edit-medical-record-container .paper{
     width: 1100px;
     padding: 60px;
     background-color: rgb(255, 255, 255);
 }
 
-.edit-medical-examination-container .title{
+.edit-medical-record-container .title{
     font-size: 25px;
     color: #131A4C;
     font-family: Verdana, Geneva, Tahoma, sans-serif;

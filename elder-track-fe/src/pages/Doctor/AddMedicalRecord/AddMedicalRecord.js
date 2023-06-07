@@ -1,21 +1,28 @@
 import {React, useState} from 'react'
+import {useNavigate, useParams} from 'react-router-dom'
 import {Grid, Typography, Button, TextField, Box, Paper, Divider, FormControl, Select, MenuItem, InputLabel} from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save'
 import Navbar from '../../../components/Navbar/Navbar.js'
-import './AddMedicalExamination.css'
+import './AddMedicalRecord.css'
+import {database} from '../../../utils/firebase.js'
+import {ref, set} from 'firebase/database'
+import {v4 as uuidv4} from 'uuid'
 
-function AddMedicalExamination() {
+function AddMedicalRecord() {
 
-    const [data, setData] = useState({purpose: "", symptoms: "", diagnosis: 10, prescription : ""});
+    const param = useParams();
+    const navigate = useNavigate();
+
+    const [data, setData] = useState({date: new Date().toLocaleDateString(), purpose: "", symptoms: "", diagnosis: 462, prescription : ""});
 
     const handleChange = (e) => {
         setData({...data, [e.target.name]: e.target.value});
     }
 
-    const [referral, setReferral] = useState([{type: "", description: ""}]);
+    const [referral, setReferral] = useState([{id: uuidv4(), type: "", description: ""}]);
 
     const handleAddReferral = () => {
-        setReferral([...referral, {type: "", description: ""}]);
+        setReferral([...referral, {id: uuidv4(), type: "", description: ""}]);
     };
     
     const handleReferralChange = (index, event) => {
@@ -31,14 +38,32 @@ function AddMedicalExamination() {
         setReferral(updatedReferral);
     };
 
+    const medicalRecordID = uuidv4();
+
     const onSubmit = (event) => {
         event.preventDefault();
-        const filteredReferral = referral.filter(entry => entry.type !== "" && entry.description !== "");
-        console.log(filteredReferral);
-        console.log(data);
-    }
+        const filteredReferral = referral.filter((entry) => entry.type !== "" && entry.description !== "");
+      
+        set(ref(database, `ElderTrack/patient/${param.id}/medicalRecord/${medicalRecordID}/info`), data)
+        .then(() => {
+            const referralPromises = filteredReferral.map(({ id, ...rest }) => {
+                return set(ref(database, `ElderTrack/patient/${param.id}/medicalRecord/${medicalRecordID}/referral/${id}`), rest)
+            });
 
-  return (
+            Promise.all(referralPromises)
+            .then(() => {
+                navigate(`/patient/${param.id}`);
+            })
+            .catch((error) => {
+                alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+            });
+        })
+        .catch((error) => {
+            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+        });
+    };
+      
+return (
     <>
     <Navbar/>
     <Grid container className="add-medical-examination-container">
@@ -90,9 +115,9 @@ function AddMedicalExamination() {
                                             onChange={handleChange}
                                             sx={{width: '500px'}}
                                         >
-                                            <MenuItem value={10}>462 ACUTE PHARYNGITIS</MenuItem>
-                                            <MenuItem value={20}>464.0 ACUTE LARYNGITIS</MenuItem>
-                                            <MenuItem value={30}>476 CHRONIC LARYNGITIS AND LARYNGOTRACHEITIS</MenuItem>
+                                            <MenuItem value={462}>462 ACUTE PHARYNGITIS</MenuItem>
+                                            <MenuItem value={464.0}>464.0 ACUTE LARYNGITIS</MenuItem>
+                                            <MenuItem value={476}>476 CHRONIC LARYNGITIS AND LARYNGOTRACHEITIS</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -127,10 +152,10 @@ function AddMedicalExamination() {
                                                     sx={{width: '500px'}}
                                                 >
                                                     <MenuItem value=""><em>None</em></MenuItem>
-                                                    <MenuItem value={10}>Analize</MenuItem>
-                                                    <MenuItem value={20}>Specialitate</MenuItem>
-                                                    <MenuItem value={30}>Tratament</MenuItem>
-                                                    <MenuItem value={30}>Proceduri</MenuItem>
+                                                    <MenuItem value={"blood-tests"}>Analize</MenuItem>
+                                                    <MenuItem value={"specialty"}>Specialitate</MenuItem>
+                                                    <MenuItem value={"treatment"}>Tratament</MenuItem>
+                                                    <MenuItem value={"procedures"}>Proceduri</MenuItem>
                                                 </Select>
                                             </FormControl>
                                         </Grid>
@@ -168,7 +193,7 @@ function AddMedicalExamination() {
         </Paper>
     </Grid>
     </>
-  )
+)
 }
 
-export default AddMedicalExamination;
+export default AddMedicalRecord;
