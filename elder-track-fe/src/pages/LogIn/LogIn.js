@@ -47,7 +47,11 @@ function LogIn() {
                     sessionStorage.setItem("role", data.role);
                     sessionStorage.setItem("uid", user.uid);
 
-                    if(data.role === "doctor")
+                    if(data.role === "admin")
+                    {
+                        navigate("/admin-dashboard");
+                    }
+                    else if(data.role === "doctor")
                     {
                         navigate("/doctor-dashboard");
                     }

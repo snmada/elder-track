@@ -30,45 +30,46 @@ function CreateUserAccount() {
         cnp: yup.string().min(13, "CNP invalid!").max(13, "CNP invalid!"),
         email: yup.string().email("Adresa de e-mail este invalidă!"),
         password: yup.string().min(8, "Parola trebuie să conțină minim 8 caractere!").max(32, "Parola trebuie să conțină maxim 32 de caractere!")
-    })
+    });
 
     const {register, handleSubmit, formState: {errors}} = useForm({
         resolver: yupResolver(schema),
     });
 
     const [doctors, setDoctors] = useState([]);
-
     const [supervisors, setSupervisors] = useState([]);
-
     const [caregivers, setCaregivers] = useState([]);
 
     useEffect(() => {
-        onValue(ref(database, "ElderTrack/Medic"), (snapshot) => {
+        onValue(ref(database, "ElderTrack/doctor"), (snapshot) => {
             const data = snapshot.val();
-            const users = Object.entries(data).map(([medicUID, user]) => ({
-                uid: medicUID,
-                firstname: user.prenume,
-                lastname: user.nume
+            const users = Object.entries(data).filter(([doctorUID, doctor]) => !doctor.deleted)
+            .map(([doctorUID, user]) => ({
+                uid: doctorUID,
+                firstname: user.firstname,
+                lastname: user.lastname,
             }));
             setDoctors(users); 
         });
 
-        onValue(ref(database, "ElderTrack/Supraveghetor"), (snapshot) => {
+        onValue(ref(database, "ElderTrack/supervisor"), (snapshot) => {
             const data = snapshot.val();
-            const users = Object.entries(data).map(([supraveghetorUID, user]) => ({
-                uid: supraveghetorUID,
-                firstname: user.prenume,
-                lastname: user.nume
+            const users = Object.entries(data).filter(([supervisorUID, supervisor]) => !supervisor.deleted)
+            .map(([supervisorUID, user]) => ({
+                uid: supervisorUID,
+                firstname: user.firstname,
+                lastname: user.lastname,
             }));
             setSupervisors(users); 
         });
 
-        onValue(ref(database, "ElderTrack/Îngrijitor"), (snapshot) => {
+        onValue(ref(database, "ElderTrack/caregiver"), (snapshot) => {
             const data = snapshot.val();
-            const users = Object.entries(data).map(([ingrijitorUID, user]) => ({
-                uid: ingrijitorUID,
-                firstname: user.prenume,
-                lastname: user.nume
+            const users = Object.entries(data).filter(([caregiverUID, caregiver]) => !caregiver.deleted)
+            .map(([caregiverUID, user]) => ({
+                uid: caregiverUID,
+                firstname: user.firstname,
+                lastname: user.lastname,
             }));
             setCaregivers(users); 
         });
@@ -81,64 +82,101 @@ function CreateUserAccount() {
             .then((userCredential) => {
                 const user = userCredential.user;
 
-                set(ref(database, `ElderTrack/Acces/${user.uid}`), {
-                    rol: data.userType,
+                set(ref(database, `ElderTrack/access/${user.uid}`), {
+                    role: data.userType,
                 })
                 .then(() => {
-                    if(data.userType === "medic")
+                    if(data.userType === "doctor")
                     {
-                        set(ref(database, `ElderTrack/Medic/${user.uid}`), {
+                        set(ref(database, `ElderTrack/doctor/${user.uid}`), {
                             CNP: data.cnp,
-                            prenume: data.firstname,
-                            nume: data.lastname
+                            firstname: data.firstname,
+                            lastname: data.lastname,
+                            email: data.email
                         })
                         .then(() => {
-                            console.log("Data saved successfully");
+                            alert("Contul a fost creat cu succes!");
                         })
                         .catch((error) => {
-                            console.error("Error saving data:", error);
+                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
                         });
                     }
-                    else if(data.userType === "supraveghetor")
+                    else if(data.userType === "supervisor")
                     {
-                        set(ref(database, `ElderTrack/Supraveghetor/${user.uid}`), {
+                        set(ref(database, `ElderTrack/supervisor/${user.uid}`), {
                             CNP: data.cnp,
-                            prenume: data.firstname,
-                            nume: data.lastname
+                            firstname: data.firstname,
+                            lastname: data.lastname,
+                            email: data.email
                         })
                         .then(() => {
-                            console.log("Data saved successfully");
+                            alert("Contul a fost creat cu succes!");
                         })
                         .catch((error) => {
-                            console.error("Error saving data:", error);
+                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
                         });
                     }
-                    else if(data.userType === "ingrijitor")
+                    else if(data.userType === "caregiver")
                     {
-                        set(ref(database, `ElderTrack/Îngrijitor/${user.uid}`), {
+                        set(ref(database, `ElderTrack/caregiver/${user.uid}`), {
                             CNP: data.cnp,
-                            prenume: data.firstname,
-                            nume: data.lastname
+                            firstname: data.firstname,
+                            lastname: data.lastname,
+                            email: data.email
                         })
                         .then(() => {
-                            console.log("Data saved successfully");
+                            alert("Contul a fost creat cu succes!");
                         })
                         .catch((error) => {
-                            console.error("Error saving data:", error);
+                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
                         });
                     }
-                    else if(data.userType === "pacient")
+                    else if(data.userType === "patient")
                     {
-                        set(ref(database, `ElderTrack/Pacient/${user.uid}`), {
-                            medicUID: data.doctor,
-                            supraveghetorUID: data.supervisor,
-                            ingrijitorUID: data.caregiver,
-                            CNP: data.cnp,
-                            prenume: data.firstname,
-                            nume: data.lastname,
+                        set(ref(database, `ElderTrack/patient/${user.uid}/careTeam`), {
+                            doctorUID: data.doctor,
+                            supervisorUID: data.supervisor,
+                            caregiverUID: data.caregiver
                         })
                         .then(() => {
-                            console.log("Data saved successfully");
+                             set(ref(database, `ElderTrack/patient/${user.uid}/personalInfo`), {
+                                CNP: data.cnp,
+                                firstname: data.firstname,
+                                lastname: data.lastname,
+                                email: data.email,
+                                age: getAge(data.cnp), 
+                                profession : "",
+                                occupation: "", 
+                                street: "", 
+                                number: "", 
+                                buildingNumber: "", 
+                                staircase: "", 
+                                floor: "", 
+                                apartment: "", 
+                                city: "", 
+                                county: "", 
+                                phoneNumber: "", 
+                                allergies: ""
+                            })
+                            .then(() => {
+                                set(ref(database, `ElderTrack/patient/${user.uid}/normalMedicalRanges`), {
+                                    bloodPressureMin: 20, bloodPressureMax: 300,
+                                    pulseMin: 40, pulseMax: 200,
+                                    bodyTemperatureMin: 30.0, bodyTemperatureMax: 42.0,
+                                    weightMin: 30.00, weightMax: 200.00,
+                                    glucoseMin: 10, glucoseMax: 400,
+                                    ambientTemperatureMin: 5, ambientTemperatureMax: 90
+                                })
+                                .then(() => {
+                                    alert("Contul a fost creat cu succes!");
+                                })
+                                .catch((error) => {
+                                    alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                                });
+                            })
+                            .catch((error) => {
+                                console.error("Error saving data:", error);
+                            });
                         })
                         .catch((error) => {
                             console.error("Error saving data:", error);
@@ -148,14 +186,35 @@ function CreateUserAccount() {
                 .catch((error) => {
                     console.error("Error saving data:", error);
                 });
-
-            
             })
             .catch((error) => {
                 console.log("Error code:" + error.code);
                 console.log("Error message:" + error.message);
             });
     };
+
+    const getAge = (cnp) => {
+        let year, month, day, age, month_difference="", full_year="";
+
+        if(cnp.substring(0,1) === "1" || cnp.substring(0,1) === "2")
+        {
+            year = parseInt("19" + cnp.substring(1,3));
+        }
+        if(cnp.substring(0,1) === "5" || cnp.substring(0,1) === "6")
+        {
+            year = parseInt("20" + cnp.substring(1,3));
+        }
+
+        month = cnp.substring(3, 5);
+        day = cnp.substring(5, 7);
+
+        month_difference = Date.now() - new Date(month + "/" + day + "/" + year).getTime();
+        full_year = new Date(month_difference).getUTCFullYear();
+
+        age = Math.abs(full_year - 1970);
+
+        return age;
+    }
 
     return (
         <>
@@ -221,16 +280,16 @@ function CreateUserAccount() {
                                     onChange={handleChange}
                                 >
                                     <MenuItem value=""><em>None</em></MenuItem>
-                                    <MenuItem value="medic">Medic</MenuItem>
-                                    <MenuItem value="pacient">Pacient</MenuItem>
-                                    <MenuItem value="supraveghetor">Supraveghetor</MenuItem>
-                                    <MenuItem value="ingrijitor">Îngrijitor</MenuItem>
+                                    <MenuItem value="doctor">Medic</MenuItem>
+                                    <MenuItem value="patient">Pacient</MenuItem>
+                                    <MenuItem value="supervisor">Supraveghetor</MenuItem>
+                                    <MenuItem value="caregiver">Îngrijitor</MenuItem>
                                 
                                 </Select>
                             </FormControl>
                         </Grid>
                         {
-                            data.userType === "pacient" && (
+                            data.userType === "patient" && (
                                 <>
                                     <Grid item xs={4}> 
                                         <FormControl fullWidth>
