@@ -55,6 +55,10 @@ function LogIn() {
                     {
                         navigate("/doctor-dashboard");
                     }
+                    else if(data.role === "supervisor")
+                    {
+                        navigate("/supervisor-dashboard");
+                    }
                 });
             })
             .catch((error) => {

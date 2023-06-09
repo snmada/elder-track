@@ -9,6 +9,8 @@ import PatientProfile from './pages/Doctor/PatientProfile/PatientProfile.js'
 import AddMedicalRecord from './pages/Doctor/AddMedicalRecord/AddMedicalRecord.js'
 import ViewMedicalRecord from './pages/Doctor/ViewMedicalRecord/ViewMedicalRecord.js'
 import EditMedicalRecord from './pages/Doctor/EditMedicalRecord/EditMedicalRecord.js'
+import SupervisorDashboard from './pages/Supervisor/Dashboard/Dashboard.js'
+import PatientAlarm from './pages/Supervisor/PatientAlarm/PatientAlarm.js'
 
 function App() {
     return (
@@ -24,6 +26,8 @@ function App() {
                 <Route exact path="/add-medical-record/:id" element={<AddMedicalRecord/>}/>
                 <Route exact path="/view-medical-record/:id_patient/:id_medical_record" element={<ViewMedicalRecord/>}/>
                 <Route exact path="/edit-medical-record/:id_patient/:id_medical_record" element={<EditMedicalRecord/>}/>
+                <Route exact path="/supervisor-dashboard" element={<SupervisorDashboard/>}/>
+                <Route exact path="/patient-alarm/:id/:id_parameter/:id_alarm" element={<PatientAlarm/>}/>
             </Routes>
         </BrowserRouter>
     )
