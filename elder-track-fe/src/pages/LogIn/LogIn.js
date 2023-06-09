@@ -59,6 +59,10 @@ function LogIn() {
                     {
                         navigate("/supervisor-dashboard");
                     }
+                    else if(data.role === "patient")
+                    {
+                        navigate("/patient-dashboard");
+                    }
                 });
             })
             .catch((error) => {

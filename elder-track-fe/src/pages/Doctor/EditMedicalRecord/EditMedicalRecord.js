@@ -100,7 +100,7 @@ function EditMedicalRecord() {
   return (
     <>
     <Navbar/>
-    <Grid container className="edit-medical-examination-container">
+    <Grid container className="edit-medical-record-container">
         <Paper elevation={0} className="paper">
             <Grid container>
                 <Grid item xs={12} pb={6}>

@@ -66,7 +66,7 @@ function AddMedicalRecord() {
 return (
     <>
     <Navbar/>
-    <Grid container className="add-medical-examination-container">
+    <Grid container className="add-medical-record-container">
         <Paper elevation={0} className="paper">
             <Grid container>
                 <Grid item xs={12} pb={6}>
