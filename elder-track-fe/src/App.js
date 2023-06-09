@@ -11,6 +11,8 @@ import ViewMedicalRecord from './pages/Doctor/ViewMedicalRecord/ViewMedicalRecor
 import EditMedicalRecord from './pages/Doctor/EditMedicalRecord/EditMedicalRecord.js'
 import SupervisorDashboard from './pages/Supervisor/Dashboard/Dashboard.js'
 import PatientAlarm from './pages/Supervisor/PatientAlarm/PatientAlarm.js'
+import PatientDashboard from './pages/Patient/Dashboard/Dashboard.js'
+import PatientMedicalRecord from './pages/Patient/PatientMedicalRecord/PatientMedicalRecord.js'
 
 function App() {
     return (
@@ -28,6 +30,8 @@ function App() {
                 <Route exact path="/edit-medical-record/:id_patient/:id_medical_record" element={<EditMedicalRecord/>}/>
                 <Route exact path="/supervisor-dashboard" element={<SupervisorDashboard/>}/>
                 <Route exact path="/patient-alarm/:id/:id_parameter/:id_alarm" element={<PatientAlarm/>}/>
+                <Route exact path="/patient-dashboard" element={<PatientDashboard/>}/>
+                <Route exact path="/patient-medical-record/:id_patient/:id_medical_record" element={<PatientMedicalRecord/>}/>
             </Routes>
         </BrowserRouter>
     )
