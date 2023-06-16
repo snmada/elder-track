@@ -77,69 +77,40 @@ function CreateUserAccount() {
 
     const auth = getAuth();
 
-    const onSubmit = () => {
-        createUserWithEmailAndPassword(auth, data.email, data.password)
-            .then((userCredential) => {
-                const user = userCredential.user;
+    const onSubmit = async () => {
+        if(data.userType === "patient")
+        {
+            let cnpList;
+            await new Promise((resolve, reject) => {
+                onValue(ref(database, 'ElderTrack/patient'), (snapshot) => {
+                    const patient = snapshot.val();
+                    if(patient) 
+                    {
+                        cnpList = Object.entries(patient).map(([patientUID, patient], index) => ({
+                            cnp: patient.personalInfo?.CNP || '',
+                        }));
+                    }
+                    resolve();
+                }, reject);
+            });
 
-                set(ref(database, `ElderTrack/access/${user.uid}`), {
-                    role: data.userType,
-                })
-                .then(() => {
-                    if(data.userType === "doctor")
-                    {
-                        set(ref(database, `ElderTrack/doctor/${user.uid}`), {
-                            CNP: data.cnp,
-                            firstname: data.firstname,
-                            lastname: data.lastname,
-                            email: data.email
-                        })
-                        .then(() => {
-                            alert("Contul a fost creat cu succes!");
-                        })
-                        .catch((error) => {
-                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
-                        });
-                    }
-                    else if(data.userType === "supervisor")
-                    {
-                        set(ref(database, `ElderTrack/supervisor/${user.uid}`), {
-                            CNP: data.cnp,
-                            firstname: data.firstname,
-                            lastname: data.lastname,
-                            email: data.email
-                        })
-                        .then(() => {
-                            alert("Contul a fost creat cu succes!");
-                        })
-                        .catch((error) => {
-                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
-                        });
-                    }
-                    else if(data.userType === "caregiver")
-                    {
-                        set(ref(database, `ElderTrack/caregiver/${user.uid}`), {
-                            CNP: data.cnp,
-                            firstname: data.firstname,
-                            lastname: data.lastname,
-                            email: data.email
-                        })
-                        .then(() => {
-                            alert("Contul a fost creat cu succes!");
-                        })
-                        .catch((error) => {
-                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
-                        });
-                    }
-                    else if(data.userType === "patient")
-                    {
+            if(!cnpList || !cnpList.some((obj) => Object.values(obj).includes(data.cnp)))
+            {
+                createUserWithEmailAndPassword(auth, data.email, data.password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+    
+                    set(ref(database, `ElderTrack/access/${user.uid}`), {
+                        role: data.userType,
+                    })
+                    .then(() => {
                         set(ref(database, `ElderTrack/patient/${user.uid}/careTeam`), {
                             doctorUID: data.doctor,
                             supervisorUID: data.supervisor,
                             caregiverUID: data.caregiver
                         })
                         .then(() => {
-                             set(ref(database, `ElderTrack/patient/${user.uid}/personalInfo`), {
+                                set(ref(database, `ElderTrack/patient/${user.uid}/personalInfo`), {
                                 CNP: data.cnp,
                                 firstname: data.firstname,
                                 lastname: data.lastname,
@@ -165,7 +136,8 @@ function CreateUserAccount() {
                                     bodyTemperatureMin: 30.0, bodyTemperatureMax: 42.0,
                                     weightMin: 30.00, weightMax: 200.00,
                                     glucoseMin: 10, glucoseMax: 400,
-                                    ambientTemperatureMin: 5, ambientTemperatureMax: 90
+                                    ambientTemperatureMin: 5, ambientTemperatureMax: 90,
+                                    ambientHumidityMin: 40, ambientHumidityMax: 70
                                 })
                                 .then(() => {
                                     alert("Contul a fost creat cu succes!");
@@ -181,16 +153,204 @@ function CreateUserAccount() {
                         .catch((error) => {
                             console.error("Error saving data:", error);
                         });
-                    }
+                    })
+                    .catch((error) => {
+                        console.error("Error saving data:", error);
+                    });
                 })
                 .catch((error) => {
-                    console.error("Error saving data:", error);
+                    if(error.code === "auth/email-already-in-use")
+                    {
+                        alert("Există deja un cont înregistrat cu această adresă de e-mail!")
+                    }
+                    else
+                    {
+                        alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                    }
                 });
-            })
-            .catch((error) => {
-                console.log("Error code:" + error.code);
-                console.log("Error message:" + error.message);
+            }
+            else
+            {
+                alert(`Există deja un pacient în baza de date înregistrat cu acest CNP: ${data.cnp}.`);
+            }
+        }
+        else if(data.userType === "doctor")
+        {
+            let cnpList;
+            await new Promise((resolve, reject) => {
+                onValue(ref(database, 'ElderTrack/doctor'), (snapshot) => {
+                    const doctor = snapshot.val();
+                    if(doctor) 
+                    {
+                        cnpList = Object.entries(doctor).map(([doctorUID, doctor], index) => ({
+                            cnp: doctor.CNP || '',
+                        }));
+                    }
+                    resolve();
+                }, reject);
             });
+
+            if(!cnpList.some((obj) => Object.values(obj).includes(data.cnp)))
+            {
+                createUserWithEmailAndPassword(auth, data.email, data.password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+    
+                    set(ref(database, `ElderTrack/access/${user.uid}`), {
+                        role: data.userType,
+                    })
+                    .then(() => {
+                        set(ref(database, `ElderTrack/doctor/${user.uid}`), {
+                            CNP: data.cnp,
+                            firstname: data.firstname,
+                            lastname: data.lastname,
+                            email: data.email
+                        })
+                        .then(() => {
+                            alert("Contul a fost creat cu succes!");
+                        })
+                        .catch((error) => {
+                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error saving data:", error);
+                    });
+                })
+                .catch((error) => {
+                    if(error.code === "auth/email-already-in-use")
+                    {
+                        alert("Există deja un cont înregistrat cu această adresă de e-mail!")
+                    }
+                    else
+                    {
+                        alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                    }
+                });
+            }
+            else
+            {
+                alert(`Există deja un doctor în baza de date înregistrat cu acest CNP: ${data.cnp}.`);
+            }
+        }
+        else if(data.userType === "caregiver")
+        {
+            let cnpList;
+            await new Promise((resolve, reject) => {
+                onValue(ref(database, 'ElderTrack/caregiver'), (snapshot) => {
+                    const caregiver = snapshot.val();
+                    if(caregiver) 
+                    {
+                        cnpList = Object.entries(caregiver).map(([caregiverUID, caregiver], index) => ({
+                            cnp: caregiver.CNP || '',
+                        }));
+                    }
+                    resolve();
+                }, reject);
+            });
+
+            if(!cnpList.some((obj) => Object.values(obj).includes(data.cnp)))
+            {
+                createUserWithEmailAndPassword(auth, data.email, data.password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+    
+                    set(ref(database, `ElderTrack/access/${user.uid}`), {
+                        role: data.userType,
+                    })
+                    .then(() => {
+                        set(ref(database, `ElderTrack/caregiver/${user.uid}`), {
+                            CNP: data.cnp,
+                            firstname: data.firstname,
+                            lastname: data.lastname,
+                            email: data.email
+                        })
+                        .then(() => {
+                            alert("Contul a fost creat cu succes!");
+                        })
+                        .catch((error) => {
+                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                        })
+                    })
+                    .catch((error) => {
+                        console.error("Error saving data:", error);
+                    });
+                })
+                .catch((error) => {
+                    if(error.code === "auth/email-already-in-use")
+                    {
+                        alert("Există deja un cont înregistrat cu această adresă de e-mail!")
+                    }
+                    else
+                    {
+                        alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                    }
+                });
+            }
+            else
+            {
+                alert(`Există deja un îngrijitor în baza de date înregistrat cu acest CNP: ${data.cnp}.`);
+            }
+        }
+        else if(data.userType === "supervisor")
+        {
+            let cnpList;
+            await new Promise((resolve, reject) => {
+                onValue(ref(database, 'ElderTrack/supervisor'), (snapshot) => {
+                    const supervisor = snapshot.val();
+                    if(supervisor) 
+                    {
+                        cnpList = Object.entries(supervisor).map(([supervisorUID, supervisor], index) => ({
+                            cnp: supervisor.CNP || '',
+                        }));
+                    }
+                    resolve();
+                }, reject);
+            });
+
+            if(!cnpList.some((obj) => Object.values(obj).includes(data.cnp)))
+            {
+                createUserWithEmailAndPassword(auth, data.email, data.password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+    
+                    set(ref(database, `ElderTrack/access/${user.uid}`), {
+                        role: data.userType,
+                    })
+                    .then(() => {
+                        set(ref(database, `ElderTrack/supervisor/${user.uid}`), {
+                            CNP: data.cnp,
+                            firstname: data.firstname,
+                            lastname: data.lastname,
+                            email: data.email
+                        })
+                        .then(() => {
+                            alert("Contul a fost creat cu succes!");
+                        })
+                        .catch((error) => {
+                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                        });
+                    })
+                    .catch((error) => {
+                        console.error("Error saving data:", error);
+                    });
+                })
+                .catch((error) => {
+                    if(error.code === "auth/email-already-in-use")
+                    {
+                        alert("Există deja un cont înregistrat cu această adresă de e-mail!")
+                    }
+                    else
+                    {
+                        alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                    }
+                });
+            }
+            else
+            {
+                alert(`Există deja un supraveghetor în baza de date înregistrat cu acest CNP: ${data.cnp}.`);
+            }
+        }
     };
 
     const getAge = (cnp) => {

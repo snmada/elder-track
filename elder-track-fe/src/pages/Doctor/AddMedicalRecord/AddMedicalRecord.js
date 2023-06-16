@@ -113,7 +113,7 @@ return (
                                             name="diagnosis"
                                             value={data.diagnosis}
                                             onChange={handleChange}
-                                            sx={{width: '500px'}}
+                                            sx={{width: '60%'}}
                                         >
                                             <MenuItem value={462}>462 ACUTE PHARYNGITIS</MenuItem>
                                             <MenuItem value={464.0}>464.0 ACUTE LARYNGITIS</MenuItem>
@@ -149,7 +149,7 @@ return (
                                                     label="Tip"
                                                     value={value.type}
                                                     onChange={(event) => handleReferralChange(index, event)}
-                                                    sx={{width: '500px'}}
+                                                    sx={{width: '200px'}}
                                                 >
                                                     <MenuItem value=""><em>None</em></MenuItem>
                                                     <MenuItem value={"blood-tests"}>Analize</MenuItem>

@@ -64,17 +64,17 @@ function ViewMedicalRecord() {
         <Grid container className="view-medical-record-container">
             <Paper elevation={0} className="paper">
                 <Grid container>
-                    <Grid item xs={6} pb={6}>
+                    <Grid item xs={12} sm={12} md={12} lg={9} pb={6}>
                         <Typography className="title">Vizualizare consultație</Typography>
                     </Grid>
-                    <Grid item xs={6} pb={2}>
+                    <Grid item xs={12} sm={12} md={12} lg={3} pb={2}>
                         <Box display='flex' justifyContent='flex-end'>
-                            <Button variant="contained" onClick={() => {navigate(`/edit-medical-record/${param.id_patient}/${param.id_medical_record}`)}} sx={{mr: 2, background: '#002B5B'}}>EDITARE</Button>
-                            <Button variant="contained" sx={{background: '#E45B5F'}} onClick={handleOpen}>ȘTERGERE</Button>
+                            <Button variant="contained" onClick={() => {navigate(`/edit-medical-record/${param.id_patient}/${param.id_medical_record}`)}} sx={{mr: 2, background: '#569DAA', ":hover" : {background: '#569DAA'}}}>EDITARE</Button>
+                            <Button variant="contained" sx={{background: '#E45B5F', ":hover" : {background: '#E45B5F'}}} onClick={handleOpen}>ȘTERGERE</Button>
                         </Box>
                     </Grid>
                     <Grid item xs={12} py={1}>
-                        <Paper elevation={0} sx={{padding:'20px 20px 0px 0px', minHeight: '560px'}}>
+                        <Paper elevation={0}>
                             <Grid container>
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Motivul prezentării</Typography>
@@ -129,7 +129,7 @@ function ViewMedicalRecord() {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => deleteMedicalRecord()} sx={{background: '#E45B5F', color: '#FBFBFB', "&:hover": {background: '#FFB84C'}}}>Șterge</Button>
+                <Button onClick={() => deleteMedicalRecord()} sx={{background: '#E45B5F', color: '#FBFBFB', ":hover" : {background: '#E45B5F'}}}>Șterge</Button>
                 <Button onClick={handleClose}>Anulare</Button>
             </DialogActions>
         </Dialog>

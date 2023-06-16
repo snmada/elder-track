@@ -40,11 +40,11 @@ function PatientMedicalRecord() {
         <Grid container className="patient-medical-record-container">
             <Paper elevation={0} className="paper">
                 <Grid container>
-                    <Grid item xs={12} pb={6}>
+                    <Grid item xs={12} pb={4}>
                         <Typography className="title">Vizualizare consultație</Typography>
                     </Grid>
                     <Grid item xs={12} py={1}>
-                        <Paper elevation={0} sx={{padding:'20px 20px 0px 0px', minHeight: '560px'}}>
+                        <Paper elevation={0}>
                             <Grid container>
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Motivul prezentării</Typography>
