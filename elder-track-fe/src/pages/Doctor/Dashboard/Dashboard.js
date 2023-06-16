@@ -22,7 +22,7 @@ function Dashboard() {
         {field: 'view', headerName: 'Vizualizare dosar', width: 150, sortable: false, filterable: false, hideable: false,
             renderCell: (cellValues) => {
                 return (
-                    <Button size="small"><FolderSharedIcon onClick={() => navigate(`/patient/${cellValues.row.uid}`)}/></Button>
+                    <Button size="small" onClick={() => navigate(`/patient/${cellValues.row.uid}`)} sx={{ml: 2.5}}><FolderSharedIcon/></Button>
                 )
             }
         },
@@ -75,7 +75,7 @@ function Dashboard() {
                     <Grid item xs={12} pb={6}>
                         <Typography className="title">Pacienți</Typography>
                     </Grid>
-                    <Grid item xs={12} py={0}>
+                    <Grid item xs={12}>
                         <div style={{height: 500, width: '100%'}}>
                             <DataGrid 
                                 columns={filteredColumns}

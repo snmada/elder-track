@@ -66,8 +66,18 @@ function LogIn() {
                 });
             })
             .catch((error) => {
-                console.log("Error code:" + error.code);
-                console.log("Error message:" + error.message);
+                if(error.code === "auth/wrong-password")
+                {
+                    alert("Parola este incorectă");
+                }
+                else if(error.code === "auth/user-not-found")
+                {
+                    alert("Utilizator inexistent!");
+                }
+                else
+                {
+                    alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                }
             });
     };
 

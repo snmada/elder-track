@@ -103,7 +103,7 @@ function EditMedicalRecord() {
     <Grid container className="edit-medical-record-container">
         <Paper elevation={0} className="paper">
             <Grid container>
-                <Grid item xs={12} pb={6}>
+                <Grid item xs={12} pb={4}>
                     <Typography className="title">Editare consultație</Typography>
                 </Grid>
                 <Grid item xs={12} py={1}>
@@ -149,7 +149,7 @@ function EditMedicalRecord() {
                                             name="diagnosis"
                                             value={data.diagnosis}
                                             onChange={handleChange}
-                                            sx={{width: '500px'}}
+                                            sx={{width: '60%'}}
                                         >
                                             <MenuItem value={462}>462 ACUTE PHARYNGITIS</MenuItem>
                                             <MenuItem value={464.0}>464.0 ACUTE LARYNGITIS</MenuItem>
@@ -189,7 +189,7 @@ function EditMedicalRecord() {
                                                             label="Tip"
                                                             value={value.type}
                                                             onChange={(event) => handleReferralChange(index, event)}
-                                                            sx={{width: '500px'}}
+                                                            sx={{width: '200px'}}
                                                         >
                                                             <MenuItem value=""><em>None</em></MenuItem>
                                                             <MenuItem value={"blood-tests"}>Analize</MenuItem>

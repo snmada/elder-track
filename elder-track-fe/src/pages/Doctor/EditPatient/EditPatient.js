@@ -18,13 +18,16 @@ function EditPatient() {
 
     const [data, setData] = useState(null);
 
+    const [patient, setPatient] = useState({});
+
     const [parameter, setParameter] = useState({
         bloodPressureMin: 20, bloodPressureMax: 300,
         pulseMin: 40, pulseMax: 200,
         bodyTemperatureMin: 30.0, bodyTemperatureMax: 42.0,
         weightMin: 30.00, weightMax: 200.00,
         glucoseMin: 10, glucoseMax: 400,
-        ambientTemperatureMin: 5, ambientTemperatureMax: 90
+        ambientTemperatureMin: 5, ambientTemperatureMax: 90,
+        ambientHumidityMin: 40, ambientHumidityMax: 70
 
     });
 
@@ -33,10 +36,10 @@ function EditPatient() {
         setParameter({...parameter, [e.target.name]: parsedValue});
     };
 
-    const [treatment, setTreatment] = useState([{id: uuidv4(), description: "", remarks: "", solvedDate: "",  solvedHour: "", status: ""}]);
+    const [treatment, setTreatment] = useState([{id: uuidv4(), description: ""}]);
 
     const handleAddTreatment = () => {
-        setTreatment([...treatment, {id: uuidv4(), description: "", remarks: "", solvedDate: "",  solvedHour: "", status: ""}]);
+        setTreatment([...treatment, {id: uuidv4(), description: ""}]);
     };
     
     const handleTreatmentChange = (index, event) => {
@@ -49,7 +52,6 @@ function EditPatient() {
     const handleDeleteTreatment = (index) => {
         const updatedTreatment= [...treatment];
         updatedTreatment[index] = { ...updatedTreatment[index], description: "-"};
-        console.log(updatedTreatment)
         setTreatment(updatedTreatment);
     };
 
@@ -127,11 +129,27 @@ function EditPatient() {
     }
 
     useEffect(() => {
+        let cnp = "";
+
         onValue(ref(database, `ElderTrack/patient/${param.id}/personalInfo`), (snapshot) => {
             const patient = snapshot.val();
             setData(patient);
+            cnp = patient.CNP;
         });
 
+        onValue(ref(database, 'ElderTrack/patient'), (snapshot) => {
+            const patient = snapshot.val();
+            
+            if(patient) 
+            {
+                const cnpList = Object.entries(patient).filter(([patientUID, patient]) => patient.personalInfo.CNP !== cnp)
+                .map(([patientUID, patient], index) => ({
+                    cnp: patient.personalInfo.CNP,
+                }));
+                setPatient(cnpList);
+            }
+        });
+    
         onValue(ref(database, `ElderTrack/patient/${param.id}/normalMedicalRanges`), (snapshot) => {
             const parameter = snapshot.val();
             setParameter(parameter);
@@ -142,7 +160,7 @@ function EditPatient() {
 
             if(treatment)
             {
-                const treatments = Object.entries(treatment).filter(([treatmentID, treatment]) => treatment.status !== "solved" && !treatment.deleted)
+                const treatments = Object.entries(treatment).filter(([treatmentID, treatment]) => !treatment.deleted)
                 .map(([treatmentID, treatment], index) => ({
                     id: treatmentID,
                     ...treatment
@@ -209,6 +227,10 @@ function EditPatient() {
         ambientTemperatureMin: yup.number()
                                 .test("ambientTemperatureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
                                 return parameter.ambientTemperatureMin <= parameter.ambientTemperatureMax
+                            }),     
+        ambientHumidityMin: yup.number()
+                                .test("ambientHumidityMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                                return parameter.ambientHumidityMin <= parameter.ambientHumidityMax
                             }),                
     });
 
@@ -216,78 +238,87 @@ function EditPatient() {
         resolver: yupResolver(schema),
     });
 
+    
+
      const onSubmit = () => {
         const filteredTreatment = treatment.filter(entry => entry.description !== "");
         const filteredRecommendation = recommendation.filter(entry => entry.type !== "" && entry.duration !== "");
         const filteredHistory = medicalHistory.filter(entry => entry.diagnosis !== "" && entry.treatment !== "" && entry.medicationSchedule !== "");
 
-        update(ref(database, `ElderTrack/patient/${param.id}/personalInfo`), data)
-        .then(() => {
-            update(ref(database, `ElderTrack/patient/${param.id}/normalMedicalRanges`), parameter)
-                .then(() => {
-                    const treatmentPromises = filteredTreatment.map(({ id, ...rest }, index) => {
-                        if(rest.description === "-") 
-                        {
-                            const updates = { 
-                                deleted: true 
-                            };
-                            return update(ref(database, `ElderTrack/patient/${param.id}/treatment/${id}`), updates)
-                            .then(() => {
-                                handleDeleteTreatment(index);
-                            });
-                        } 
-                        else 
-                        {
-                            return update(ref(database, `ElderTrack/patient/${param.id}/treatment/${id}`), rest);
-                        }
-                    });
-        
-                    const recommendationPromises = filteredRecommendation.map(({ id, ...rest }, index) => {
-                        if(rest.type === "-" && rest.duration === "-" && rest.notes === "-") 
-                        {
-                            const updates = { 
-                                deleted: true 
-                            };
-                            return update(ref(database, `ElderTrack/patient/${param.id}/recommendation/${id}`), updates)
-                            .then(() => {
-                                handleDeleteRecommendation(index);
-                            });
-                        } 
-                        else 
-                        {
-                            return update(ref(database, `ElderTrack/patient/${param.id}/recommendation/${id}`), rest);
-                        }
-                    });
-        
-                    const historyPromises = filteredHistory.map(({ id, ...rest }, index) => {
-                        if(rest.diagnosis === "-" && rest.treatment === "-" && rest.medicationSchedule === "-") 
-                        {
-                            const updates = { 
-                                deleted: true 
-                            };
-                            return update(ref(database, `ElderTrack/patient/${param.id}/medicalHistory/${id}`), updates)
-                            .then(() => {
-                                handleDeleteMedicalHistory(index);
-                            });
-                        } 
-                        else 
-                        {
-                            return update(ref(database, `ElderTrack/patient/${param.id}/medicalHistory/${id}`), rest);
-                        }
-                    });
-        
-                    Promise.all([...treatmentPromises, ...recommendationPromises, ...historyPromises])
+        if(!patient.some((obj) => Object.values(obj).includes(data.CNP)))
+        {
+            update(ref(database, `ElderTrack/patient/${param.id}/personalInfo`), data)
+            .then(() => {
+                update(ref(database, `ElderTrack/patient/${param.id}/normalMedicalRanges`), parameter)
                     .then(() => {
-                        navigate(`/patient/${param.id}`);
+                        const treatmentPromises = filteredTreatment.map(({ id, ...rest }, index) => {
+                            if(rest.description === "-") 
+                            {
+                                const updates = { 
+                                    deleted: true 
+                                };
+                                return update(ref(database, `ElderTrack/patient/${param.id}/treatment/${id}`), updates)
+                                .then(() => {
+                                    handleDeleteTreatment(index);
+                                });
+                            } 
+                            else 
+                            {
+                                return update(ref(database, `ElderTrack/patient/${param.id}/treatment/${id}`), rest);
+                            }
+                        });
+            
+                        const recommendationPromises = filteredRecommendation.map(({ id, ...rest }, index) => {
+                            if(rest.type === "-" && rest.duration === "-" && rest.notes === "-") 
+                            {
+                                const updates = { 
+                                    deleted: true 
+                                };
+                                return update(ref(database, `ElderTrack/patient/${param.id}/recommendation/${id}`), updates)
+                                .then(() => {
+                                    handleDeleteRecommendation(index);
+                                });
+                            } 
+                            else 
+                            {
+                                return update(ref(database, `ElderTrack/patient/${param.id}/recommendation/${id}`), rest);
+                            }
+                        });
+            
+                        const historyPromises = filteredHistory.map(({ id, ...rest }, index) => {
+                            if(rest.diagnosis === "-" && rest.treatment === "-" && rest.medicationSchedule === "-") 
+                            {
+                                const updates = { 
+                                    deleted: true 
+                                };
+                                return update(ref(database, `ElderTrack/patient/${param.id}/medicalHistory/${id}`), updates)
+                                .then(() => {
+                                    handleDeleteMedicalHistory(index);
+                                });
+                            } 
+                            else 
+                            {
+                                return update(ref(database, `ElderTrack/patient/${param.id}/medicalHistory/${id}`), rest);
+                            }
+                        });
+            
+                        Promise.all([...treatmentPromises, ...recommendationPromises, ...historyPromises])
+                        .then(() => {
+                            navigate(`/patient/${param.id}`);
+                        })
+                        .catch((error) => {
+                            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                        });
                     })
-                    .catch((error) => {
-                        alert("A intervenit o eroare. Vă rugăm să mai încercați!");
-                    });
                 })
-            })
-        .catch((error) => {
-            alert("A intervenit o eroare. Vă rugăm să mai încercați!");
-        });
+            .catch((error) => {
+                alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+            });
+        }
+        else
+        {
+            alert(`Există deja un pacient în baza de date înregistrat cu acest CNP: ${data.CNP}. Vă rugăm să modificați!`);
+        }
     }
 
   return (
@@ -761,6 +792,42 @@ function EditPatient() {
                                         required
                                     />
                                     <Typography className="error">{errors.ambientTemperatureMin?.message}</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={4} py={2} px={1} sx={{display: 'flex', alignItems: 'center'}}>
+                                    <Typography sx={{fontSize: '18px'}}>Umiditate (%)</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={8} p={1}>
+                                    <TextField
+                                        label="min"
+                                        type="number"
+                                        name="ambientHumidityMin"
+                                        value={parameter.ambientHumidityMin}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 40,
+                                                max: 70
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <TextField
+                                        label="max"
+                                        type="number"
+                                        name="ambientHumidityMax"
+                                        value={parameter.ambientHumidityMax}
+                                        sx={{paddingRight: 2, paddingBottom: 2, width: '100px'}}
+                                        InputProps={{
+                                            inputProps: {
+                                                min: 40,
+                                                max: 70
+                                            }
+                                        }}
+                                        onChange={updateParameter}
+                                        required
+                                    />
+                                    <Typography className="error">{errors.ambientHumidityMin?.message}</Typography>
                                 </Grid>
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
                                     <Typography variant="h6" className="description">Tratamente</Typography>

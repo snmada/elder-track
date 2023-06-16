@@ -41,7 +41,7 @@ function Dashboard() {
         {field: 'delete', headerName: 'Ștergere', width: 90, sortable: false, filterable: false, hideable: false,
             renderCell: (cellValues) => {
                 return (
-                    <Button size="small"><DeleteIcon sx={{color: '#E45B5F'}} onClick={() => {handleOpen(cellValues.row.uid, cellValues.row.user)}}/></Button>
+                    <Button size="small" onClick={() => {handleOpen(cellValues.row.uid, cellValues.row.user)}}><DeleteIcon sx={{color: '#E45B5F'}}/></Button>
                 )
             }
         },
@@ -184,10 +184,10 @@ function Dashboard() {
         <Grid container className="admin-dashboard-container">
             <Paper elevation={0} className="paper">
                 <Grid container>
-                    <Grid item xs={8} pb={6}>
-                        <Typography className="title">Listele utilizatorilor înregistrați în aplicație: Îngrijitori, Medici, Pacienți și Supraveghetori</Typography>
+                    <Grid item xs={8} pb={4}>
+                        <Typography className="title">Utilizatori</Typography>
                     </Grid>
-                    <Grid item xs={4} pb={6}>
+                    <Grid item xs={4} pb={4}>
                         <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
                             <Tooltip title="Înregistrare utilizator">
                                 <Fab color="primary" sx={{width: '40px', height: '40px'}} onClick={() => {navigate('/create-user')}}><AddIcon/></Fab>
@@ -200,7 +200,7 @@ function Dashboard() {
                                 <Typography>ÎNGRIJITORI</Typography>
                             </AccordionSummary>
                                 <AccordionDetails>
-                                    <div style={{height: 500, width: '100%'}}>
+                                    <div style={{height: 400, width: '100%'}}>
                                         <DataGrid 
                                             columns={filteredColumns}
                                             pageSize={10}
@@ -218,7 +218,7 @@ function Dashboard() {
                                 <Typography>MEDICI</Typography>
                             </AccordionSummary>
                                 <AccordionDetails>
-                                    <div style={{height: 500, width: '100%'}}>
+                                    <div style={{height: 400, width: '100%'}}>
                                         <DataGrid 
                                             columns={filteredColumns}
                                             pageSize={10}
@@ -236,7 +236,7 @@ function Dashboard() {
                                 <Typography>PACIENȚI</Typography>
                             </AccordionSummary>
                                 <AccordionDetails>
-                                    <div style={{height: 500, width: '100%'}}>
+                                    <div style={{height: 400, width: '100%'}}>
                                         <DataGrid 
                                             columns={filteredColumns}
                                             pageSize={10}
@@ -254,7 +254,7 @@ function Dashboard() {
                                 <Typography>SUPRAVEGHETORI</Typography>
                             </AccordionSummary>
                                 <AccordionDetails>
-                                    <div style={{height: 500, width: '100%'}}>
+                                    <div style={{height: 400, width: '100%'}}>
                                         <DataGrid 
                                             columns={filteredColumns}
                                             pageSize={10}
@@ -277,7 +277,7 @@ function Dashboard() {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => {deleteUser()}} sx={{background: '#E45B5F', color: '#FBFBFB', "&:hover": {background: '#FFB84C'}}}>Șterge</Button>
+                <Button onClick={() => {deleteUser()}} sx={{background: '#E45B5F', color: '#FBFBFB', "&:hover": {background: '#E45B5F'}}}>Șterge</Button>
                 <Button onClick={handleClose}>Anulare</Button>
             </DialogActions>
         </Dialog>
