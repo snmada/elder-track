@@ -205,31 +205,31 @@ function EditPatient() {
         email: yup.string().email("Adresa de e-mail este invalidă!"),
         phoneNumber: yup.string().matches(/^[0-9]+$/, "Număr invalid!").min(10, "Număr invalid!").max(10, "Număr invalid!"),
         bloodPressureMin: yup.number()
-                            .test("bloodPressureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                            .test("bloodPressureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă!", function (value) {
                                 return parameter.bloodPressureMin <= parameter.bloodPressureMax
                             }),
         pulseMin: yup.number()
-                    .test("pulseMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                    .test("pulseMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă!", function (value) {
                         return parameter.pulseMin <= parameter.pulseMax
                     }),  
         bodyTemperatureMin: yup.number()
-                                .test("bodyTemperatureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                                .test("bodyTemperatureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă!", function (value) {
                                     return parameter.bodyTemperatureMin <= parameter.bodyTemperatureMax
                                 }),  
         weightMin: yup.number()
-                    .test("weightMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                    .test("weightMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă!", function (value) {
                         return parameter.weightMin <= parameter.weightMax
                     }),  
         glucoseMin: yup.number()
-                    .test("glucoseMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                    .test("glucoseMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă!", function (value) {
                         return parameter.glucoseMin <= parameter.glucoseMax
                     }),    
         ambientTemperatureMin: yup.number()
-                                .test("ambientTemperatureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                                .test("ambientTemperatureMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă!", function (value) {
                                 return parameter.ambientTemperatureMin <= parameter.ambientTemperatureMax
                             }),     
         ambientHumidityMin: yup.number()
-                                .test("ambientHumidityMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă", function (value) {
+                                .test("ambientHumidityMin", "Valoarea minimă trebuie să fie mai mică decât cea maximă!", function (value) {
                                 return parameter.ambientHumidityMin <= parameter.ambientHumidityMax
                             }),                
     });
@@ -563,7 +563,6 @@ function EditPatient() {
                                         name="allergies"
                                         value={data.allergies}
                                         onChange={handleChange}
-                                        required
                                         placeholder="Introduceți aici..."
                                         multiline
                                         maxRows={10}

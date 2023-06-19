@@ -10,7 +10,8 @@ function PatientMedicalRecord() {
 
     const param = useParams();
     const [data, setData] = useState({purpose: "", symptoms: "", diagnosis: 10, prescription : ""});
-    const [referral, setReferral] = useState([{id: "", type: "", description: ""}]);
+    const [referral, setReferral] = useState({type: "", description: ""});
+    const [result, setResult] = useState("");
 
     useEffect(() => {
         onValue(ref(database, `ElderTrack/patient/${param.id_patient}/medicalRecord/${param.id_medical_record}`), (snapshot) => {
@@ -23,12 +24,28 @@ function PatientMedicalRecord() {
 
             if(referral)
             {
-                const referrals = Object.entries(referral).filter(([referralID, referral]) => !referral.deleted)
-                .map(([referralID, referral], index) => ({
-                    id: referralID,
-                    ...referral
-                }));
-                setReferral(referrals);
+                setReferral(referral);
+            }
+        });
+
+        onValue(ref(database, "ElderTrack/consultations"), (snapshot) => {
+            const consultations = snapshot.val();
+
+            if(consultations)
+            {
+                let result = null;
+                Object.entries(consultations).forEach(([consultationID, consultation]) => {
+                    if(consultation.medicalRecordUID === param.id_medical_record) 
+                    {
+                        result = consultation.result;
+                        return;
+                    }
+                });
+
+                if (result) 
+                {
+                    setResult(result);
+                }
             }
         });
     }, []);
@@ -70,21 +87,22 @@ function PatientMedicalRecord() {
                                 <Grid item xs={12} p={1}>
                                     <Typography>{data.prescription}</Typography>
                                 </Grid>
-                                <Grid item xs={12} mt={2} px={1} pb={2}>
-                                    <Typography variant="h6" className="description">Trimiteri</Typography>
-                                </Grid>
-                                <Grid item xs={12} p={1}>
                                 {
-                                    referral.map((value, index) => {
-                                        return(
-                                            <Grid item xs={12} my={3} py={1} mx={5} sx={{borderBottom: '1px solid grey'}} key={index}>
-                                                <Typography>Tip: {value.type === 'blood-tests' ? 'Analize' : value.type === 'specialty' ? 'Specialitate' : value.type === 'Treatment' ? 'Tratament' : value.type === 'procedures' ? 'Proceduri' : ''}</Typography>
-                                                <Typography>Descriere: {value.description}</Typography>
+                                    referral.type !== "" &&  (
+                                        <>
+                                        <Grid item xs={12} mt={2} px={1} pb={2}>
+                                            <Typography variant="h6" className="description">Trimitere</Typography>
+                                        </Grid>
+                                        <Grid item xs={12} p={1}>
+                                            <Grid item xs={12} my={3} py={1} mx={5} sx={{borderBottom: '1px solid grey'}}>
+                                                <Typography>Tip: {referral.type === 'blood-tests' ? 'Analize' : referral.type === 'specialty' ? 'Specialitate' : referral.type === 'treatment' ? 'Tratament' : referral.type === 'procedures' ? 'Proceduri' : ''}</Typography>
+                                                <Typography pb={2}>Descriere: {referral.description}</Typography>
+                                                <Typography><span style={{background: '#FFE194', padding: '10px', marginRight: '10px'}}>Rezultat:</span>{result}</Typography>
                                             </Grid>
-                                        )
-                                    })
+                                        </Grid>
+                                        </>
+                                    )
                                 }
-                                </Grid>
                             </Grid>
                         </Paper>
                     </Grid>

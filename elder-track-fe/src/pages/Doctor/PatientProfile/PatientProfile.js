@@ -89,7 +89,7 @@ function PatientProfile() {
                 const filteredMedicalRecords = Object.entries(medicalRecord).filter(([medicalRecordID, medicalRecord]) => !medicalRecord.deleted)
                 .map(([medicalRecordID, medicalRecord], index) => ({
                     id: index + 1,
-                    date: new Date(medicalRecord.info.date),
+                    date: new Date(medicalRecord.info.date.split('/').reverse().join('-')),
                     uid: medicalRecordID
                 }));
                 setRows(filteredMedicalRecords); 

@@ -34,7 +34,7 @@ function Patient() {
             {
                 onValue(ref(database, `ElderTrack/patient/${param.id}/vitalParameters//${param.id_parameter}/alarms/${param.id_alarm}`), (snapshot) => {
                     const data = snapshot.val();
-                    setAlarm({...data, type: "ambient"});
+                    setAlarm({...data, type: "vital"});
                 });
             }
         });
