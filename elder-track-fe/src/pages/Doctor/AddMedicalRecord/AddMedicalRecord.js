@@ -1,11 +1,11 @@
-import {React, useState} from 'react'
+import {React, useState, useEffect} from 'react'
 import {useNavigate, useParams} from 'react-router-dom'
 import {Grid, Typography, Button, TextField, Box, Paper, Divider, FormControl, Select, MenuItem, InputLabel} from '@mui/material'
 import SaveIcon from '@mui/icons-material/Save'
 import Navbar from '../../../components/Navbar/Navbar.js'
 import './AddMedicalRecord.css'
 import {database} from '../../../utils/firebase.js'
-import {ref, set} from 'firebase/database'
+import {ref, set, onValue} from 'firebase/database'
 import {v4 as uuidv4} from 'uuid'
 
 function AddMedicalRecord() {
@@ -15,48 +15,115 @@ function AddMedicalRecord() {
 
     const [data, setData] = useState({date: new Date().toLocaleDateString(), purpose: "", symptoms: "", diagnosis: 462, prescription : ""});
 
+    const medicalRecordID = uuidv4();
+
+    const doctorUID = sessionStorage.getItem("uid");
+
     const handleChange = (e) => {
         setData({...data, [e.target.name]: e.target.value});
     }
 
-    const [referral, setReferral] = useState([{id: uuidv4(), type: "", description: ""}]);
-
-    const handleAddReferral = () => {
-        setReferral([...referral, {id: uuidv4(), type: "", description: ""}]);
-    };
+    const [referral, setReferral] = useState({type: "", description: ""});
     
-    const handleReferralChange = (index, event) => {
-        const {name, value} = event.target;
-        const updatedReferral = [...referral];
-        updatedReferral[index] = {...updatedReferral[index], [name]: value};
-        setReferral(updatedReferral);
+    const handleReferralChange = (e) => {
+        setReferral({...referral, [e.target.name]: e.target.value});
     };
 
-    const handleDeleteReferral = (index) => {
-        const updatedReferral= [...referral];
-        updatedReferral.splice(index, 1);
-        setReferral(updatedReferral);
-    };
+    const [doctorInfo, setDoctorInfo] = useState({firstname: "", lastname: ""});
+    const [patientInfo, setPatientInfo] = useState({firstname: "", lastname: ""});
 
-    const medicalRecordID = uuidv4();
+    useEffect(() => {
+        onValue(ref(database, `ElderTrack/doctor/${doctorUID}`), (snapshot) => {
+            const doctor = snapshot.val();
+            if(doctor) 
+            {
+                const { firstname, lastname } = doctor;
+                setDoctorInfo({ firstname, lastname });
+            }
+        });
+
+        onValue(ref(database, `ElderTrack/patient/${param.id}/personalInfo`), (snapshot) => {
+            const patient = snapshot.val();
+            if(patient) 
+            {
+                const { firstname, lastname } = patient;
+                setPatientInfo({ firstname, lastname });
+            }
+        });
+    }, []);
 
     const onSubmit = (event) => {
         event.preventDefault();
-        const filteredReferral = referral.filter((entry) => entry.type !== "" && entry.description !== "");
-      
         set(ref(database, `ElderTrack/patient/${param.id}/medicalRecord/${medicalRecordID}/info`), data)
         .then(() => {
-            const referralPromises = filteredReferral.map(({ id, ...rest }) => {
-                return set(ref(database, `ElderTrack/patient/${param.id}/medicalRecord/${medicalRecordID}/referral/${id}`), rest)
-            });
-
-            Promise.all(referralPromises)
-            .then(() => {
+            if(referral.type !== "" && referral.description !== "")
+            {
+                set(ref(database, `ElderTrack/patient/${param.id}/medicalRecord/${medicalRecordID}/referral`), {
+                    type: referral.type,
+                    description: referral.description
+                })
+                .then(() => {
+                    const messageInfo = {
+                        resourceType : "Basic",
+                        id: medicalRecordID,
+                        extension : [
+                            {
+                                valueReference : {
+                                    reference : doctorUID,
+                                    display: doctorInfo.lastname + " " + doctorInfo.firstname
+                                }
+                            },
+                            {
+                                valueString : referral.description
+                            }
+                        ],
+                        modifierExtension : [
+                            {
+                                valueCodeableConcept : {
+                                    coding : [
+                                        {
+                                            system : "http://snomed.info/sct",
+                                            code: data.diagnosis,
+                                            display: "Consultation"
+                                        }
+                                    ]
+                                }
+                            }
+                        ],
+                        subject : {
+                            reference : param.id,
+                            display: patientInfo.lastname + " " + patientInfo.firstname
+                        },
+                        created : data.date,
+                        author : {
+                            reference : doctorUID
+                        }
+                    }
+    
+                    fetch("https://teleasistenta-cc12b49944b9.herokuapp.com/send_consultation", {
+                        headers: {
+                          'Accept': 'application/json',
+                          'Content-Type': 'application/json',
+                        },
+                        method: 'POST',
+                        body: JSON.stringify(messageInfo)
+                    })
+                    .then((response) => response.json())
+                    .then((responseData) => {
+                        navigate(`/patient/${param.id}`);
+                    })
+                    .catch((error) =>{
+                        alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                    })
+                })
+                .catch((error) => {
+                    alert("A intervenit o eroare. Vă rugăm să mai încercați!");
+                })
+            }
+            else
+            {
                 navigate(`/patient/${param.id}`);
-            })
-            .catch((error) => {
-                alert("A intervenit o eroare. Vă rugăm să mai încercați!");
-            });
+            }
         })
         .catch((error) => {
             alert("A intervenit o eroare. Vă rugăm să mai încercați!");
@@ -115,9 +182,13 @@ return (
                                             onChange={handleChange}
                                             sx={{width: '60%'}}
                                         >
-                                            <MenuItem value={462}>462 ACUTE PHARYNGITIS</MenuItem>
-                                            <MenuItem value={464.0}>464.0 ACUTE LARYNGITIS</MenuItem>
-                                            <MenuItem value={476}>476 CHRONIC LARYNGITIS AND LARYNGOTRACHEITIS</MenuItem>
+                                            <MenuItem value={462}>462 FARINGITĂ ACUTĂ</MenuItem>
+                                            <MenuItem value={464.0}>464.0 LARINGITĂ ACUTĂ</MenuItem>
+                                            <MenuItem value={472}>472.0 RINITĂ CRONICĂ</MenuItem>
+                                            <MenuItem value={476}>476 LARINGITĂ CRONICĂ ȘI LARINGOTRAHEITĂ</MenuItem>
+                                            <MenuItem value={491}>491 BRONȘITĂ CRONICĂ</MenuItem>
+                                            <MenuItem value={493}>493 ASTM</MenuItem>
+                                            <MenuItem value={504}>504 PNEUMOPATIE</MenuItem>
                                         </Select>
                                     </FormControl>
                                 </Grid>
@@ -136,48 +207,36 @@ return (
                                     />
                                 </Grid>
                                 <Grid item xs={12} mt={2} px={1} pb={2}>
-                                    <Typography variant="h6" className="description">Trimiteri</Typography>
+                                    <Typography variant="h6" className="description">Trimitere</Typography>
                                 </Grid>
-                                {referral.map((value, index) => (
-                                    <div key={index} style={{width: '100%'}}>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <FormControl>
-                                                <InputLabel id="select-label-type">Tip</InputLabel>
-                                                <Select
-                                                    labelId="select-label-type"
-                                                    name="type"
-                                                    label="Tip"
-                                                    value={value.type}
-                                                    onChange={(event) => handleReferralChange(index, event)}
-                                                    sx={{width: '200px'}}
-                                                >
-                                                    <MenuItem value=""><em>None</em></MenuItem>
-                                                    <MenuItem value={"blood-tests"}>Analize</MenuItem>
-                                                    <MenuItem value={"specialty"}>Specialitate</MenuItem>
-                                                    <MenuItem value={"treatment"}>Tratament</MenuItem>
-                                                    <MenuItem value={"procedures"}>Proceduri</MenuItem>
-                                                </Select>
-                                            </FormControl>
-                                        </Grid>
-                                        <Grid item xs={12} sm={12} p={1}>
-                                            <TextField 
-                                                name="description" 
-                                                type="text"  
-                                                label="Descriere" 
-                                                fullWidth 
-                                                value={value.description}
-                                                onChange={(event) => handleReferralChange(index, event)}
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} pb={0}>
-                                            <Box sx={{display: 'flex', justifyContent: 'flex-end'}}>
-                                                <Button onClick={() => handleDeleteReferral(index)} sx={{color: 'red'}}>ȘTERGE</Button>
-                                            </Box>
-                                        </Grid>
-                                    </div>
-                                ))}
-                                <Grid item xs={12} pb={6}>
-                                    <Button onClick={handleAddReferral}>+ ADAUGĂ</Button>
+                                <Grid item xs={12} sm={12} p={1}>
+                                    <FormControl>
+                                        <InputLabel id="select-label-type">Tip</InputLabel>
+                                        <Select
+                                            labelId="select-label-type"
+                                            name="type"
+                                            label="Tip"
+                                            value={referral.type}
+                                            onChange={handleReferralChange}
+                                            sx={{width: '200px'}}
+                                        >
+                                            <MenuItem value=""><em>None</em></MenuItem>
+                                            <MenuItem value={"blood-tests"}>Analize</MenuItem>
+                                            <MenuItem value={"specialty"}>Specialitate</MenuItem>
+                                            <MenuItem value={"treatment"}>Tratament</MenuItem>
+                                            <MenuItem value={"procedures"}>Proceduri</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} sm={12} p={1}>
+                                    <TextField 
+                                        name="description" 
+                                        type="text"  
+                                        label="Descriere" 
+                                        fullWidth 
+                                        value={referral.description}
+                                        onChange={handleReferralChange}
+                                    />
                                 </Grid>
                                 <Grid item xs={12} p={1} pt={8}>
                                     <Divider/>
