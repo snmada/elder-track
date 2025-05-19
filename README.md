@@ -15,6 +15,3 @@ This repository contains the web application, which was designed for patients, d
 - React
 - Material UI
 - Firebase
-
-
-Link to Wireframe: https://www.figma.com/file/pZhIzTVXOtzrRw25cFvz1v/ElderTrack?type=design&node-id=0%3A1&mode=design&t=fnfT4fGEHOlHDSKe-1
